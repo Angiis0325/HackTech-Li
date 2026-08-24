@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fisioterapeuta Li - Centro de Rehabilitación</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navegación y Header -->
+    <header class="navbar">
+        <div class="logo">Fisio<span>Li</span></div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#sobre-li">Sobre Li</a></li>
+                <li><a href="#servicios">Servicios</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+        <button class="btn-primary" onclick="openReservationModal()">Reservar Cita</button>
+    </header>
+
+    <!-- 1. Página de Inicio (Home) -->
+    <section id="inicio" class="hero">
+        <div class="hero-content">
+            <h1>Recupera tu movilidad, fortalece tu vida</h1>
+            <p>Atención fisioterapéutica personalizada para rehabilitación integral y deportiva.</p>
+            <div class="hero-buttons">
+                <button class="btn-primary" onclick="openReservationModal()">Agendar Consulta</button>
+                <a href="#servicios" class="btn-secondary">Ver Servicios</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Sobre Li -->
+    <section id="sobre-li" class="section">
+        <div class="container">
+            <h2 class="section-title">Sobre la Fisioterapeuta Li</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <h3>Perfil Profesional</h3>
+                    <p>Especialista en fisioterapia musculoesquelética y rehabilitación funcional con amplia trayectoria en la atención personalizada.</p>
+                </div>
+                <div class="about-card">
+                    <h3>Enfoque y Experiencia</h3>
+                    <p>Tratamientos integrales combinando terapia manual, ejercicios terapéuticos y tecnología de recuperación.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Servicios -->
+    <section id="servicios" class="section bg-light">
+        <div class="container">
+            <h2 class="section-title">Nuestros Servicios</h2>
+            <div class="services-grid">
+                
+                <div class="service-card">
+                    <h3>Fisioterapia Deportiva</h3>
+                    <p>Prevención y tratamiento de lesiones asociadas a la práctica deportiva.</p>
+                    <div class="service-details">
+                        <span>⏱ Duración: 60 min</span>
+                    </div>
+                    <button class="btn-secondary" onclick="openReservationModal('Fisioterapia Deportiva')">Reservar</button>
+                </div>
+
+                <div class="service-card">
+                    <h3>Rehabilitación Funcional</h3>
+                    <p>Recuperación de movilidad y fuerza tras cirugías o lesiones.</p>
+                    <div class="service-details">
+                        <span>⏱ Duración: 45 min</span>
+                    </div>
+                    <button class="btn-secondary" onclick="openReservationModal('Rehabilitación Funcional')">Reservar</button>
+                </div>
+
+                <div class="service-card">
+                    <h3>Terapia Manual</h3>
+                    <p>Alivio de tensiones musculares, contracturas y dolor localizado.</p>
+                    <div class="service-details">
+                        <span>⏱ Duración: 50 min</span>
+                    </div>
+                    <button class="btn-secondary" onclick="openReservationModal('Terapia Manual')">Reservar</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Contacto -->
+    <section id="contacto" class="section">
+        <div class="container">
+            <h2 class="section-title">Contacto y Ubicación</h2>
+            <div class="contact-info">
+                <p><strong>Dirección:</strong> Consultorio Fisioterapeuta Li</p>
+                <p><strong>Atención:</strong> Agendamiento directo y soporte vía Telegram / Web</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Componente Reutilizable: Modal de Reserva (Base para Sebastián) -->
+    <div id="reservationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeReservationModal()">&times;</span>
+            <h2>Agendar Sesión</h2>
+            <form id="reservationForm">
+                <div class="form-group">
+                    <label for="serviceSelect">Servicio:</label>
+                    <select id="serviceSelect" required>
+                        <option value="">Seleccione un servicio...</option>
+                        <option value="Fisioterapia Deportiva">Fisioterapia Deportiva</option>
+                        <option value="Rehabilitación Funcional">Rehabilitación Funcional</option>
+                        <option value="Terapia Manual">Terapia Manual</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="dateSelect">Fecha:</label>
+                    <input type="date" id="dateSelect" required>
+                </div>
+                <div class="form-group">
+                    <label for="timeSelect">Horarios Disponibles:</label>
+                    <select id="timeSelect" required>
+                        <option value="">Seleccione un horario...</option>
+                        <option value="08:00">08:00 AM</option>
+                        <option value="10:00">10:00 AM</option>
+                        <option value="14:00">02:00 PM</option>
+                        <option value="16:00">04:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="clientName">Nombre Completo:</label>
+                    <input type="text" id="clientName" placeholder="Tu nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="clientEmail">Correo Electrónico:</label>
+                    <input type="email" id="clientEmail" placeholder="ejemplo@correo.com" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">Confirmar Reserva</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Fisioterapeuta Li. Desarrollado por CodeCrafters.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
