@@ -1,0 +1,86 @@
+fisioterapeuta-li/
+│
+├── README.md                      # Descripción general, arquitectura, cómo correr todo
+├── .env.example                   # Variables de entorno de ejemplo (sin secretos reales)
+├── .gitignore
+├── docker-compose.yml             # Levanta n8n, base de datos, backend, Ollama (si aplica)
+│
+├── docs/
+│   ├── arquitectura.md            # Diagrama y explicación: Telegram→n8n→IA→Servicios
+│   ├── manual-uso.md              # Manual básico de administración y uso
+│   └── seguridad.md               # Principio de mínimo privilegio, manejo de credenciales
+│
+├── bot-telegram/                  # CANAL: lógica específica del bot (si no vive todo en n8n)
+│   ├── src/
+│   │   ├── handlers/               # Manejo de comandos y mensajes
+│   │   └── auth/                   # Whitelist de usuarios autorizados (chat IDs)
+│   └── package.json
+│
+├── ia-local/                      # INTELIGENCIA: modelo local (Ollama) y prompts
+│   ├── prompts/
+│   │   ├── sistema-interpretacion.md   # Prompt que convierte lenguaje natural → JSON
+│   │   └── ejemplos-few-shot.md
+│   ├── modelfile                  # Configuración del modelo en Ollama
+│   └── test-interpretacion.py     # Pruebas con frases de ejemplo del reto
+│
+├── n8n/                           # ORQUESTACIÓN: workflows exportados
+│   ├── workflows/
+│   │   ├── telegram-entrada.json       # Recibe mensaje, valida usuario, llama IA
+│   │   ├── gestion-agenda.json         # Crear/consultar/modificar citas
+│   │   ├── automatizacion-correos.json # Confirmaciones, recordatorios
+│   │   ├── gestion-drive.json          # Crear carpetas, clasificar documentos
+│   │   └── reserva-desde-web.json      # Flujo mínimo obligatorio del reto
+│   └── credentials/               # (plantillas, NO credenciales reales)
+│
+├── backend/                       # HERRAMIENTAS EMPRESARIALES: API central
+│   ├── src/
+│   │   ├── controllers/
+│   │   │   ├── agenda.controller.js
+│   │   │   ├── reservas.controller.js
+│   │   │   └── clientes.controller.js
+│   │   ├── services/
+│   │   │   ├── google-calendar.service.js
+│   │   │   ├── gmail.service.js
+│   │   │   ├── drive.service.js
+│   │   │   └── sheets.service.js
+│   │   ├── models/                 # Esquemas de la base de datos
+│   │   │   ├── cita.model.js
+│   │   │   ├── cliente.model.js
+│   │   │   └── usuario.model.js
+│   │   ├── middlewares/
+│   │   │   ├── auth.middleware.js
+│   │   │   └── validacion.middleware.js
+│   │   └── routes/
+│   ├── config/
+│   │   └── db.js
+│   └── package.json
+│
+├── database/
+│   ├── migrations/
+│   └── seeds/                     # Datos de prueba (clientes, servicios ficticios)
+│
+├── sitio-web/                     # CANAL: frontend público + reservas
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── inicio/
+│   │   │   ├── servicios/
+│   │   │   ├── contacto/
+│   │   │   └── reservas/           # Módulo de reservas
+│   │   ├── components/
+│   │   └── styles/
+│   └── package.json
+│
+├── panel-admin/                   # Panel administrativo protegido
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── dashboard/
+│   │   │   ├── agenda/
+│   │   │   ├── clientes/
+│   │   │   └── integraciones/      # Estado de conexiones (Calendar, Gmail, Drive)
+│   │   └── auth/
+│   └── package.json
+│
+└── tests/
+    ├── unit/
+    ├── integration/
+    └── e2e/                        # Prueba del flujo completo obligatorio
