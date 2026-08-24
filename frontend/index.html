@@ -3,254 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fisioterapeuta Li | Centro de Rehabilitación y Bienestar</title>
+    <title>IPS FisioSalud - Centro de Fisioterapia y Rehabilitación</title>
+    <!-- Hoja de Estilos principal -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Iconos de FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Navegacion Principal -->
-    <header class="header">
-        <nav class="navbar container">
-            <a href="#home" class="logo">Fisioterapeuta <span>Li</span></a>
-            <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">
-                <span class="hamburger"></span>
+    <!-- Header / Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#inicio" class="brand">
+                <i class="fa-solid fa-heart-pulse logo-icon"></i>
+                <span class="brand-text">Fisio<span>Salud</span></span>
+            </a>
+
+            <nav class="nav-links" id="navLinks">
+                <a href="#inicio" class="nav-link active">Inicio</a>
+                <a href="#servicios" class="nav-link">Servicios</a>
+                <a href="#nosotros" class="nav-link">Nosotros</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
+                <button class="btn btn-primary nav-btn" onclick="openReservationModal()">Reservar Cita</button>
+            </nav>
+
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Abrir menú">
+                <i class="fa-solid fa-bars"></i>
             </button>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="#home" class="nav-link">Inicio</a></li>
-                <li><a href="#servicios" class="nav-link">Servicios</a></li>
-                <li><a href="#sobre-li" class="nav-link">Sobre Li</a></li>
-                <li><a href="#contacto" class="nav-link">Contacto</a></li>
-                <li><button class="btn-primary" id="openModalNav">Reservar Cita</button></li>
-            </ul>
-        </nav>
+        </div>
     </header>
 
     <main>
-        <!-- Seccion Home / Hero -->
-        <section id="home" class="hero">
+        <!-- Sección 1: Hero / Inicio -->
+        <section id="inicio" class="hero">
             <div class="container hero-container">
                 <div class="hero-content">
                     <span class="badge">Atención Especializada</span>
-                    <h1>Rehabilitación física personalizada para recuperar tu calidad de vida</h1>
-                    <p>Tratamientos integrales de fisioterapia adaptados a tus necesidades. Diagnóstico preciso, terapia manual y seguimiento continuo para tu completa recuperación.</p>
+                    <h1>Recupera tu movilidad y vive sin dolor</h1>
+                    <p class="hero-description">
+                        En IPS FisioSalud combinamos técnicas avanzadas de fisioterapia con un enfoque personalizado para ayudarte a alcanzar tu máximo bienestar físico.
+                    </p>
                     <div class="hero-actions">
-                        <button class="btn-primary btn-large" id="openModalHero">Agendar Consulta</button>
-                        <a href="#servicios" class="btn-secondary btn-large">Ver Servicios</a>
-                    </div>
-                    <div class="hero-stats">
-                        <div class="stat-item">
-                            <span class="stat-number">+8</span>
-                            <span class="stat-label">Años de Experiencia</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">+1200</span>
-                            <span class="stat-label">Pacientes Atendidos</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-number">100%</span>
-                            <span class="stat-label">Atención Personalizada</span>
-                        </div>
+                        <button class="btn btn-primary btn-large" onclick="openReservationModal()">
+                            <i class="fa-regular fa-calendar-check"></i> Agendar Cita
+                        </button>
+                        <a href="#servicios" class="btn btn-secondary btn-large">
+                            Ver Servicios
+                        </a>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Seccion Servicios -->
-        <section id="servicios" class="services section-padding">
+        <!-- Sección 2: Servicios -->
+        <section id="servicios" class="services">
             <div class="container">
                 <div class="section-header">
-                    <h2>Nuestros Servicios</h2>
-                    <p>Soluciones terapéuticas diseñadas para aliviar el dolor, mejorar la movilidad y prevenir lesiones futuras.</p>
+                    <span class="section-subtitle">Nuestra Oferta</span>
+                    <h2>Servicios Especializados</h2>
+                    <p>Tratamientos diseñados a la medida para cada etapa de tu recuperación.</p>
                 </div>
+
                 <div class="services-grid">
-                    <article class="service-card">
-                        <div class="service-header">
-                            <h3>Fisioterapia Traumatológica</h3>
-                            <span class="service-duration">60 min</span>
+                    <!-- Servicio 1 -->
+                    <div class="service-card">
+                        <div class="card-icon">
+                            <i class="fa-solid fa-person-running"></i>
                         </div>
-                        <p>Tratamiento especializado para fracturas, luxaciones, esguinces y recuperación postoperatoria articular y muscular.</p>
+                        <h3>Fisioterapia Deportiva</h3>
+                        <p>Prevención y rehabilitación de lesiones asociadas a la práctica deportiva.</p>
                         <ul class="service-features">
-                            <li>Rehabilitación postquirúrgica</li>
-                            <li>Tratamiento de lesiones óseas</li>
-                            <li>Recuperación muscular rápida</li>
+                            <li><i class="fa-solid fa-check"></i> Evaluación biomecánica</li>
+                            <li><i class="fa-solid fa-check"></i> Reintegro deportivo guiado</li>
                         </ul>
-                        <button class="btn-secondary service-btn" data-service="Fisioterapia Traumatológica">Reservar este servicio</button>
-                    </article>
+                        <button class="btn btn-outline" onclick="openReservationModal('Fisioterapia Deportiva')">Reservar Servicio</button>
+                    </div>
 
-                    <article class="service-card">
-                        <div class="service-header">
-                            <h3>Rehabilitación Deportiva</h3>
-                            <span class="service-duration">50 min</span>
+                    <!-- Servicio 2 -->
+                    <div class="service-card highlight">
+                        <span class="card-badge">Más Solicitado</span>
+                        <div class="card-icon">
+                            <i class="fa-solid fa-hands-holding-child"></i>
                         </div>
-                        <p>Prevención y reacondicionamiento físico para atletas de todos los niveles. Retorno seguro a la práctica deportiva.</p>
+                        <h3>Rehabilitación Funcional</h3>
+                        <p>Recuperación de movilidad y fuerza tras cirugías o lesiones prolongadas.</p>
                         <ul class="service-features">
-                            <li>Optimización del rendimiento</li>
-                            <li>Prevención de recaídas</li>
-                            <li>Terapia de descarga muscular</li>
+                            <li><i class="fa-solid fa-check"></i> Control de dolor y edema</li>
+                            <li><i class="fa-solid fa-check"></i> Fortalecimiento progresivo</li>
                         </ul>
-                        <button class="btn-secondary service-btn" data-service="Rehabilitación Deportiva">Reservar este servicio</button>
-                    </article>
+                        <button class="btn btn-primary" onclick="openReservationModal('Rehabilitación Funcional')">Reservar Servicio</button>
+                    </div>
 
-                    <article class="service-card">
-                        <div class="service-header">
-                            <h3>Terapia Manual y Postural</h3>
-                            <span class="service-duration">45 min</span>
+                    <!-- Servicio 3 -->
+                    <div class="service-card">
+                        <div class="card-icon">
+                            <i class="fa-solid fa-spa"></i>
                         </div>
-                        <p>Técnicas manuales específicas para reequilibrar cadenas musculares, reducir tensiones y corregir desviaciones posturales.</p>
+                        <h3>Terapia Manual</h3>
+                        <p>Alivio de tensiones musculares, contracturas y restricción del movimiento.</p>
                         <ul class="service-features">
-                            <li>Evaluación biomecánica</li>
-                            <li>Liberación miofascial</li>
-                            <li>Corrección ergonómica</li>
+                            <li><i class="fa-solid fa-check"></i> Masaje terapéutico y de descarga</li>
+                            <li><i class="fa-solid fa-check"></i> Movilización articular libre</li>
                         </ul>
-                        <button class="btn-secondary service-btn" data-service="Terapia Manual y Postural">Reservar este servicio</button>
-                    </article>
-
-                    <article class="service-card">
-                        <div class="service-header">
-                            <h3>Tratamiento del Dolor Crónico</h3>
-                            <span class="service-duration">60 min</span>
-                        </div>
-                        <p>Abordaje multidisciplinario para patologías crónicas como lumbalgias, cervicalgias, artrosis y fibromialgia.</p>
-                        <ul class="service-features">
-                            <li>Manejo analgésico no invasivo</li>
-                            <li>Ejercicios terapéuticos guiados</li>
-                            <li>Educación en neurociencia del dolor</li>
-                        </ul>
-                        <button class="btn-secondary service-btn" data-service="Tratamiento del Dolor Crónico">Reservar este servicio</button>
-                    </article>
+                        <button class="btn btn-outline" onclick="openReservationModal('Terapia Manual')">Reservar Servicio</button>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Seccion Sobre Li -->
-        <section id="sobre-li" class="about section-padding bg-light">
+        <!-- Sección 3: Nosotros -->
+        <section id="nosotros" class="about">
             <div class="container about-container">
                 <div class="about-content">
-                    <span class="badge">Perfil Profesional</span>
-                    <h2>Sobre la Fisioterapeuta Li</h2>
-                    <p class="lead">Especialista en rehabilitación funcional y fisioterapia avanzada con enfoque humano e integral.</p>
-                    <p>Con años de dedicación en el sector de la salud y la fisioterapia, mi misión es brindar una atención cálida y científicamente fundamentada. Cada tratamiento comienza con una evaluación exhaustiva para encontrar el origen del problema y no solo tratar los síntomas.</p>
-                    <div class="about-highlights">
-                        <div class="highlight-box">
-                            <h4>Formación Continua</h4>
-                            <p>Certificaciones en técnicas de terapia manual avanzada y rehabilitación neurológica.</p>
+                    <span class="section-subtitle">Conoce IPS FisioSalud</span>
+                    <h2>Comprometidos con tu salud integral</h2>
+                    <p>
+                        Somos un centro especializado en rehabilitación física focalizado en brindar tratamientos oportunos y efectivos para acompañarte en cada etapa de tu recuperación.
+                    </p>
+
+                    <div class="about-pillars">
+                        <div class="pillar-item">
+                            <i class="fa-solid fa-user-doctor pillar-icon"></i>
+                            <div>
+                                <h4>Atención Profesional</h4>
+                                <p>Personal cualificado e idóneo capacitado para el manejo de tu tratamiento.</p>
+                            </div>
                         </div>
-                        <div class="highlight-box">
-                            <h4>Enfoque Personalizado</h4>
-                            <p>Planes de tratamiento diseñados exclusivamente según las metas de cada paciente.</p>
+
+                        <div class="pillar-item">
+                            <i class="fa-solid fa-notes-medical pillar-icon"></i>
+                            <div>
+                                <h4>Planes Individualizados</h4>
+                                <p>Tratamientos específicos diseñados según la valoración del paciente.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Seccion Contacto -->
-        <section id="contacto" class="contact section-padding">
+        <!-- Sección 4: Contacto -->
+        <section id="contacto" class="contact">
             <div class="container">
                 <div class="section-header">
-                    <h2>Contacto y Ubicación</h2>
-                    <p>Ponte en contacto para resolver tus dudas o agendar tu evaluación presencial.</p>
+                    <span class="section-subtitle">Ubicación y Canales</span>
+                    <h2>Ponte en Contacto</h2>
+                    <p>Estamos disponibles para resolver tus dudas y agendar tus servicios.</p>
                 </div>
+
                 <div class="contact-grid">
                     <div class="contact-info">
-                        <h3>Información de Atención</h3>
-                        <div class="info-item">
-                            <strong>Ubicación:</strong>
-                            <p>Centro Médico Profesional, Consultorio 302</p>
+                        <div class="info-card">
+                            <i class="fa-solid fa-location-dot contact-icon"></i>
+                            <div>
+                                <h4>Dirección</h4>
+                                <p>Sede Principal IPS FisioSalud</p>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <strong>Teléfono y WhatsApp:</strong>
-                            <p>+57 (300) 123-4567</p>
+
+                        <div class="info-card">
+                            <i class="fa-solid fa-envelope contact-icon"></i>
+                            <div>
+                                <h4>Correo Electrónico</h4>
+                                <p>contacto@fisiosalud.com</p>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <strong>Correo Electrónico:</strong>
-                            <p>contacto@fisioterapeutali.com</p>
+
+                        <div class="info-card">
+                            <i class="fa-solid fa-phone contact-icon"></i>
+                            <div>
+                                <h4>Teléfono</h4>
+                                <p>+57 (608) 700 0000</p>
+                            </div>
                         </div>
-                        <div class="info-item">
-                            <strong>Horarios de Atención:</strong>
-                            <p>Lunes a Viernes: 08:00 AM - 07:00 PM</p>
-                            <p>Sábados: 08:00 AM - 01:00 PM</p>
+
+                        <div class="info-card">
+                            <i class="fa-solid fa-clock contact-icon"></i>
+                            <div>
+                                <h4>Horario de Atención</h4>
+                                <p>Lunes a Viernes: 8:00 a.m. - 6:00 p.m.</p>
+                            </div>
                         </div>
                     </div>
-                    <form class="contact-form" id="contactForm">
-                        <h3>Enviarnos un Mensaje</h3>
-                        <div class="form-group">
-                            <label for="contactName">Nombre completo</label>
-                            <input type="text" id="contactName" required placeholder="Tu nombre y apellido">
-                        </div>
-                        <div class="form-group">
-                            <label for="contactEmail">Correo electrónico</label>
-                            <input type="email" id="contactEmail" required placeholder="ejemplo@correo.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="contactMessage">Mensaje o consulta</label>
-                            <textarea id="contactMessage" rows="4" required placeholder="Escribe tu consulta aquí..."></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary">Enviar Mensaje</button>
-                    </form>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
         <div class="container footer-container">
-            <p>&copy; 2026 Fisioterapeuta Li. Todos los derechos reservados.</p>
-            <p>Sistema Inteligente de Gestión y Reservas - HackTech 5.0</p>
+            <div class="footer-brand">
+                <a href="#inicio" class="brand">
+                    <i class="fa-solid fa-heart-pulse logo-icon"></i>
+                    <span class="brand-text">Fisio<span>Salud</span></span>
+                </a>
+                <p>Centro especializado en fisioterapia y rehabilitación física.</p>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 IPS FisioSalud. Todos los derechos reservados.</p>
+            </div>
         </div>
     </footer>
 
-    <!-- Modal de Reserva -->
-    <div class="modal" id="reservationModal" aria-hidden="true">
-        <div class="modal-overlay" id="modalOverlay"></div>
-        <div class="modal-content">
+    <!-- Modal de Reserva de Juan Sebastián -->
+    <div class="modal-backdrop" id="modalBackdrop" onclick="closeReservationModal(event)">
+        <div class="modal" id="reservationModal" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3>Agendar Cita de Fisioterapia</h3>
-                <button class="modal-close" id="closeModal" aria-label="Cerrar modal">&times;</button>
+                <h3>Agendar Cita Médica</h3>
+                <button class="modal-close" onclick="closeReservationModal()">&times;</button>
             </div>
-            <form id="reservationForm">
-                <div class="form-group">
-                    <label for="resName">Nombre Completo</label>
-                    <input type="text" id="resName" required placeholder="Ingrese su nombre">
-                </div>
-                <div class="form-group">
-                    <label for="resPhone">Teléfono de Contacto</label>
-                    <input type="tel" id="resPhone" required placeholder="Número telefónico">
-                </div>
-                <div class="form-group">
-                    <label for="resService">Servicio Requerido</label>
-                    <select id="resService" required>
-                        <option value="">Seleccione un servicio</option>
-                        <option value="Fisioterapia Traumatológica">Fisioterapia Traumatológica</option>
-                        <option value="Rehabilitación Deportiva">Rehabilitación Deportiva</option>
-                        <option value="Terapia Manual y Postural">Terapia Manual y Postural</option>
-                        <option value="Tratamiento del Dolor Crónico">Tratamiento del Dolor Crónico</option>
-                    </select>
-                </div>
-                <div class="form-row">
+
+            <form id="reservationForm" novalidate>
+                <div class="modal-body">
+                    <div id="resFeedback" class="reservation-feedback"></div>
+
+                    <!-- Selección de Servicio -->
                     <div class="form-group">
-                        <label for="resDate">Fecha Preferida</label>
-                        <input type="date" id="resDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="resTime">Horario Preferido</label>
-                        <select id="resTime" required>
-                            <option value="">Seleccione horario</option>
-                            <option value="08:00">08:00 AM</option>
-                            <option value="10:00">10:00 AM</option>
-                            <option value="14:00">02:00 PM</option>
-                            <option value="16:00">04:00 PM</option>
+                        <label for="resService">Servicio *</label>
+                        <select id="resService" name="serviceId" required>
+                            <option value="">Cargando servicios...</option>
                         </select>
+                        <span class="field-error" id="error-service"></span>
+                    </div>
+
+                    <!-- Fecha -->
+                    <div class="form-group">
+                        <label for="resDate">Fecha *</label>
+                        <input type="date" id="resDate" name="date" required>
+                        <span class="field-error" id="error-date"></span>
+                    </div>
+
+                    <!-- Horarios Dinámicos -->
+                    <div class="form-group">
+                        <label>Horario Disponible *</label>
+                        <div id="resTimeSlots" class="time-slots-container">
+                            <p class="slots-hint">Selecciona un servicio y una fecha para ver horarios.</p>
+                        </div>
+                        <input type="hidden" id="resStartTime" name="startTime">
+                        <input type="hidden" id="resEndTime" name="endTime">
+                        <span class="field-error" id="error-time"></span>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Nombre Completo -->
+                    <div class="form-group">
+                        <label for="resName">Nombre Completo *</label>
+                        <input type="text" id="resName" name="fullName" placeholder="Ej. Juan Pérez" required>
+                        <span class="field-error" id="error-fullName"></span>
+                    </div>
+
+                    <!-- Correo Electrónico -->
+                    <div class="form-group">
+                        <label for="resEmail">Correo Electrónico *</label>
+                        <input type="email" id="resEmail" name="email" placeholder="ejemplo@correo.com" required>
+                        <span class="field-error" id="error-email"></span>
+                    </div>
+
+                    <!-- Teléfono -->
+                    <div class="form-group">
+                        <label for="resPhone">Teléfono / WhatsApp *</label>
+                        <input type="tel" id="resPhone" name="phone" placeholder="300 000 0000" required>
+                        <span class="field-error" id="error-phone"></span>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="form-group">
+                        <label for="resNotes">Observaciones o motivo de consulta (opcional)</label>
+                        <textarea id="resNotes" name="notes" rows="3" placeholder="Describe brevemente tu condición..."></textarea>
+                        <span class="field-error" id="error-notes"></span>
                     </div>
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" id="cancelReservation">Cancelar</button>
-                    <button type="submit" class="btn-primary">Confirmar Reserva</button>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeReservationModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="resSubmitBtn">Confirmar Reserva</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Carga de Scripts en el orden exacto requerido por el modulo -->
+    <script src="js/ReservationConfig.js"></script>
+    <script src="js/mock-data.js"></script>
+    <script src="js/reservation-api.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/reservation-flow.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
