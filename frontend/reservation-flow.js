@@ -1,3 +1,14 @@
+/**
+ * reservation-flow.js
+ * Maneja el flujo completo del formulario de reserva del modal:
+ * carga de servicios, disponibilidad por servicio/fecha, selección de
+ * horario, validación y envío al backend (o a los mocks).
+ *
+ * Depende de: ReservationConfig.js, mock-data.js, reservation-api.js, validation.js
+ * IDs esperados en index.html (dentro de #reservationModal):
+ *   resService, resDate, resTimeSlots, resStartTime, resEndTime,
+ *   resName, resEmail, resPhone, resNotes, resFeedback, reservationForm
+ */
 
 const reservationState = {
   services: [],
@@ -5,13 +16,13 @@ const reservationState = {
   selectedServiceId: null,
   selectedDate: null,
   availableSlots: [],
-  selectedSlot: null, 
+  selectedSlot: null,
   submitting: false
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const dateInput = document.getElementById('dateSelect');
-  const serviceSelect = document.getElementById('serviceSelect');
+  const dateInput = document.getElementById('resDate');
+  const serviceSelect = document.getElementById('resService');
   const form = document.getElementById('reservationForm');
 
   if (dateInput) {
@@ -33,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
   loadServices();
 });
 
+// Hook que app.js llama al abrir el modal (showModal), para precargar
+// servicios y preseleccionar el servicio elegido desde una tarjeta.
 window.onReservationModalOpen = async function onReservationModalOpen(serviceName) {
   clearFeedback();
   resetSlotSelection();
@@ -43,7 +56,7 @@ window.onReservationModalOpen = async function onReservationModalOpen(serviceNam
 
   if (serviceName) {
     const match = reservationState.services.find((s) => s.name === serviceName);
-    const serviceSelect = document.getElementById('serviceSelect');
+    const serviceSelect = document.getElementById('resService');
     if (match && serviceSelect) {
       serviceSelect.value = String(match.id);
       reservationState.selectedServiceId = match.id;
@@ -53,7 +66,7 @@ window.onReservationModalOpen = async function onReservationModalOpen(serviceNam
 };
 
 async function loadServices() {
-  const serviceSelect = document.getElementById('serviceSelect');
+  const serviceSelect = document.getElementById('resService');
   if (!serviceSelect) return;
 
   setSelectLoading(serviceSelect, 'Cargando servicios...');
@@ -70,7 +83,7 @@ async function loadServices() {
 }
 
 function renderServiceOptions(services) {
-  const serviceSelect = document.getElementById('serviceSelect');
+  const serviceSelect = document.getElementById('resService');
   if (!serviceSelect) return;
 
   const options = ['<option value="">Seleccione un servicio...</option>']
@@ -84,8 +97,8 @@ function renderServiceOptions(services) {
 }
 
 async function onServiceOrDateChange() {
-  const serviceSelect = document.getElementById('serviceSelect');
-  const dateInput = document.getElementById('dateSelect');
+  const serviceSelect = document.getElementById('resService');
+  const dateInput = document.getElementById('resDate');
 
   reservationState.selectedServiceId = serviceSelect.value || null;
   reservationState.selectedDate = dateInput.value || null;
@@ -117,14 +130,14 @@ async function loadAvailability() {
 }
 
 function renderSlotsHint(message) {
-  const container = document.getElementById('timeSlots');
+  const container = document.getElementById('resTimeSlots');
   if (container) {
     container.innerHTML = `<p class="slots-hint">${message}</p>`;
   }
 }
 
 function renderTimeSlots(slots) {
-  const container = document.getElementById('timeSlots');
+  const container = document.getElementById('resTimeSlots');
   if (!container) return;
 
   if (!slots.length) {
@@ -149,8 +162,8 @@ function selectSlot(index) {
   if (!slot) return;
 
   reservationState.selectedSlot = slot;
-  document.getElementById('startTimeInput').value = slot.startTime;
-  document.getElementById('endTimeInput').value = slot.endTime;
+  document.getElementById('resStartTime').value = slot.startTime;
+  document.getElementById('resEndTime').value = slot.endTime;
 
   document.querySelectorAll('.slot-btn').forEach((btn, i) => {
     btn.classList.toggle('slot-btn-selected', i === index);
@@ -162,8 +175,8 @@ function selectSlot(index) {
 function resetSlotSelection() {
   reservationState.selectedSlot = null;
   reservationState.availableSlots = [];
-  const startInput = document.getElementById('startTimeInput');
-  const endInput = document.getElementById('endTimeInput');
+  const startInput = document.getElementById('resStartTime');
+  const endInput = document.getElementById('resEndTime');
   if (startInput) startInput.value = '';
   if (endInput) endInput.value = '';
 }
@@ -179,10 +192,10 @@ async function onSubmitReservation(event) {
     serviceId: reservationState.selectedServiceId,
     date: reservationState.selectedDate,
     startTime: reservationState.selectedSlot ? reservationState.selectedSlot.startTime : '',
-    fullName: document.getElementById('clientName').value,
-    email: document.getElementById('clientEmail').value,
-    phone: document.getElementById('clientPhone').value,
-    notes: document.getElementById('clientNotes').value
+    fullName: document.getElementById('resName').value,
+    email: document.getElementById('resEmail').value,
+    phone: document.getElementById('resPhone').value,
+    notes: document.getElementById('resNotes').value
   };
 
   const { isValid, errors } = validateReservationForm(formData);
@@ -221,7 +234,6 @@ async function onSubmitReservation(event) {
       showFeedback('error', describeApiError(error, 'No se pudo completar la reserva.'));
     }
 
-  
     if (error.code === 'SLOT_UNAVAILABLE') {
       resetSlotSelection();
       loadAvailability();
@@ -251,10 +263,9 @@ function describeApiError(error, fallbackMessage) {
   return (error && error.message) || fallbackMessage;
 }
 
-
 function setSubmitting(isSubmitting) {
   reservationState.submitting = isSubmitting;
-  const btn = document.getElementById('submitReservationBtn');
+  const btn = document.getElementById('resSubmitBtn');
   if (btn) {
     btn.disabled = isSubmitting;
     btn.textContent = isSubmitting ? 'Enviando...' : 'Confirmar Reserva';
@@ -266,14 +277,14 @@ function setSelectLoading(selectEl, label) {
 }
 
 function showFeedback(type, message) {
-  const el = document.getElementById('reservationFeedback');
+  const el = document.getElementById('resFeedback');
   if (!el) return;
   el.textContent = message;
   el.className = `reservation-feedback reservation-feedback-${type}`;
 }
 
 function clearFeedback() {
-  const el = document.getElementById('reservationFeedback');
+  const el = document.getElementById('resFeedback');
   if (!el) return;
   el.textContent = '';
   el.className = 'reservation-feedback';
