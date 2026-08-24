@@ -8,6 +8,7 @@ function execPromise(command) {
         reject({ error, stdout, stderr });
         return;
       }
+
       resolve({ stdout, stderr });
     });
   });
@@ -15,16 +16,21 @@ function execPromise(command) {
 
 async function getPidsUsingPortWindows(port) {
   try {
-    const { stdout } = await execPromise(`netstat -ano -p tcp | findstr :${port}`);
+    const { stdout } = await execPromise(
+      `netstat -ano -p tcp | findstr :${port}`
+    );
+
     const lines = stdout
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean);
 
     const pids = new Set();
+
     for (const line of lines) {
       const parts = line.split(/\s+/);
       const pid = Number(parts[parts.length - 1]);
+
       if (Number.isInteger(pid) && pid > 0) {
         pids.add(pid);
       }
@@ -32,10 +38,12 @@ async function getPidsUsingPortWindows(port) {
 
     return Array.from(pids);
   } catch (result) {
-    const out = `${result.stdout || ""}${result.stderr || ""}`;
-    if (/No se encontr|Could not find|FINDSTR/i.test(out)) {
+    // En Windows, findstr devuelve código 1 cuando
+    // simplemente no encuentra coincidencias.
+    if (result.error?.code === 1) {
       return [];
     }
+
     throw result.error;
   }
 }
@@ -43,10 +51,13 @@ async function getPidsUsingPortWindows(port) {
 async function getPidsUsingPortUnix(port) {
   try {
     const { stdout } = await execPromise(`lsof -ti tcp:${port}`);
+
     return stdout
       .split(/\r?\n/)
       .map((value) => Number(value.trim()))
-      .filter((value) => Number.isInteger(value) && value > 0);
+      .filter(
+        (value) => Number.isInteger(value) && value > 0
+      );
   } catch {
     return [];
   }
@@ -80,7 +91,9 @@ async function freePort(port) {
         await killPidUnix(pid);
       }
     } catch (error) {
-      console.warn(`[dev] Could not stop PID ${pid}: ${error.message}`);
+      console.warn(
+        `[dev] Could not stop PID ${pid}: ${error.message}`
+      );
     }
   }
 

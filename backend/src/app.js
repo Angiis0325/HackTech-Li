@@ -40,9 +40,12 @@ app.get("/api", (req, res) => {
 				"POST /api/auth/login",
 				"POST /api/reservations/public",
 				"GET /api/reservations/availability",
+				"PATCH /api/reservations/public/:id/cancel",
+				"PATCH /api/reservations/public/:id/reschedule",
 				"GET /api/reservations (auth)",
 				"GET /api/reservations/:id (auth)",
 				"PATCH /api/reservations/:id/status (auth)",
+				"PATCH /api/reservations/:id/reschedule (auth)",
 				"PATCH /api/integrations/n8n/reservations/:id/status (token)",
 				"GET /api/audit-logs (auth)"
 			]

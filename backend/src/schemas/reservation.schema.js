@@ -46,6 +46,42 @@ const reservationIdSchema = z.object({
   query: z.object({})
 });
 
+// Admin/staff reprograma una reserva (no requiere verificar email del cliente)
+const rescheduleReservationSchema = z.object({
+  body: z.object({
+    startTime: isoDate,
+    endTime: isoDate
+  }),
+  params: z.object({
+    id: z.coerce.number().int().positive()
+  }),
+  query: z.object({})
+});
+
+// Cliente cancela su propia reserva desde el sitio web (sin login)
+const publicCancelReservationSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email()
+  }),
+  params: z.object({
+    id: z.coerce.number().int().positive()
+  }),
+  query: z.object({})
+});
+
+// Cliente reprograma su propia reserva desde el sitio web (sin login)
+const publicRescheduleReservationSchema = z.object({
+  body: z.object({
+    email: z.string().trim().email(),
+    startTime: isoDate,
+    endTime: isoDate
+  }),
+  params: z.object({
+    id: z.coerce.number().int().positive()
+  }),
+  query: z.object({})
+});
+
 const availabilitySchema = z.object({
   body: z.object({}),
   params: z.object({}),
@@ -64,5 +100,8 @@ module.exports = {
   updateReservationStatusSchema,
   listReservationsSchema,
   reservationIdSchema,
-  availabilitySchema
+  availabilitySchema,
+  rescheduleReservationSchema,
+  publicCancelReservationSchema,
+  publicRescheduleReservationSchema
 };

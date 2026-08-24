@@ -7,20 +7,39 @@ const {
   updateReservationStatusSchema,
   listReservationsSchema,
   reservationIdSchema,
-  availabilitySchema
+  availabilitySchema,
+  rescheduleReservationSchema,
+  publicCancelReservationSchema,
+  publicRescheduleReservationSchema
 } = require("../schemas/reservation.schema");
 const {
   createPublicReservation,
   getReservations,
   getReservation,
   patchReservationStatus,
-  getAvailability
+  getAvailability,
+  adminRescheduleReservation,
+  publicCancelReservation,
+  publicRescheduleReservation
 } = require("../controllers/reservation.controller");
 
 const router = express.Router();
 
 router.post("/public", validate(createReservationSchema), createPublicReservation);
 router.get("/availability", validate(availabilitySchema), getAvailability);
+
+// Cliente gestiona su propia reserva (sin login, verificado por email)
+router.patch(
+  "/public/:id/cancel",
+  validate(publicCancelReservationSchema),
+  publicCancelReservation
+);
+
+router.patch(
+  "/public/:id/reschedule",
+  validate(publicRescheduleReservationSchema),
+  publicRescheduleReservation
+);
 
 router.get(
   "/",
@@ -44,6 +63,14 @@ router.patch(
   authorizeRoles("admin", "staff"),
   validate(updateReservationStatusSchema),
   patchReservationStatus
+);
+
+router.patch(
+  "/:id/reschedule",
+  requireAuth,
+  authorizeRoles("admin", "staff"),
+  validate(rescheduleReservationSchema),
+  adminRescheduleReservation
 );
 
 module.exports = router;
