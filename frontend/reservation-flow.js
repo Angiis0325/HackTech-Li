@@ -2,7 +2,7 @@
  * reservation-flow.js
  * Maneja el flujo completo del formulario de reserva del modal:
  * carga de servicios, disponibilidad por servicio/fecha, selección de
- * horario, validación y envío al backend (o a los mocks).
+ * horario, validación y envío al backend o a los mocks.
  *
  * Depende de: ReservationConfig.js, mock-data.js, reservation-api.js, validation.js
  * IDs esperados en index.html (dentro de #reservationModal):
