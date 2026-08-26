@@ -76,8 +76,10 @@ function openReservationModal(serviceName = null) {
     }
 }
 
-function closeReservationModal(event) {
-    if (event && event.target && event.target.id !== 'modalBackdrop') {
+function closeReservationModal(event = null) {
+    // Si la llamada proviene del click event en el backdrop,
+    // solo se ignora si se hizo clic explícitamente en la tarjeta modal interna.
+    if (event && event.target && event.currentTarget && event.target !== event.currentTarget) {
         return;
     }
 

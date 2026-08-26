@@ -15,7 +15,7 @@
   --gray-800: #1e293b;
   --danger: #e63946;
   --success: #2a9d8f;
-  
+
   --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --radius: 12px;
   --transition: all 0.3s ease;
@@ -100,7 +100,7 @@ body {
 }
 
 /* ==========================================================================
-   NAVBAR
+   NAVEGACIÓN / NAVBAR
    ========================================================================== */
 .navbar {
   position: fixed;
@@ -171,16 +171,22 @@ body {
 }
 
 /* ==========================================================================
-   HERO / INICIO
+   HOME / INICIO
    ========================================================================== */
+#home,
+.home-section,
 .hero {
   padding: 10rem 0 6rem 0;
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
 }
 
 .hero-container {
   max-width: 900px;
   text-align: center;
+  margin: 0 auto;
 }
 
 .badge {
@@ -217,6 +223,8 @@ body {
 /* ==========================================================================
    SERVICIOS
    ========================================================================== */
+#servicios,
+.services-section,
 .services {
   padding: 6rem 0;
   background-color: var(--white);
@@ -326,8 +334,10 @@ body {
 }
 
 /* ==========================================================================
-   NOSOTROS
+   SOBRE LI / SOBRE MÍ
    ========================================================================== */
+#sobre-li,
+.about-section,
 .about {
   padding: 6rem 0;
   background-color: var(--gray-100);
@@ -335,6 +345,7 @@ body {
 
 .about-container {
   max-width: 800px;
+  margin: 0 auto;
 }
 
 .about-content h2 {
@@ -376,6 +387,8 @@ body {
 /* ==========================================================================
    CONTACTO
    ========================================================================== */
+#contacto,
+.contact-section,
 .contact {
   padding: 6rem 0;
   background-color: var(--white);
@@ -460,7 +473,7 @@ body {
 }
 
 /* ==========================================================================
-   MODAL DE RESERVAS Y SLOTS DE HORARIO (JS FLOW)
+   MODAL DE RESERVAS Y SLOTS DE HORARIO
    ========================================================================== */
 .modal-backdrop {
   position: fixed;
@@ -575,7 +588,6 @@ body {
   gap: 0.75rem;
 }
 
-/* Grilla de Botones de Horario */
 .time-slots-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
@@ -621,7 +633,6 @@ body {
   border-color: var(--primary) !important;
 }
 
-/* Cajas de Alerta / Feedback */
 .reservation-feedback {
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -645,7 +656,7 @@ body {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN (MEDIA QUERIES)
    ========================================================================== */
 @media (max-width: 768px) {
   .mobile-toggle {
@@ -679,5 +690,13 @@ body {
 
   .btn-large {
     width: 100%;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-info {
+    grid-template-columns: 1fr;
   }
 }
