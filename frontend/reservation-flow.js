@@ -205,19 +205,27 @@ async function onSubmitReservation(event) {
     return;
   }
 
-  const payload = {
-    fullName: formData.fullName.trim(),
-    email: formData.email.trim(),
-    phone: formData.phone.trim(),
-    serviceId: Number(formData.serviceId),
-    startTime: reservationState.selectedSlot.startTime,
-    endTime: reservationState.selectedSlot.endTime,
-    notes: formData.notes ? formData.notes.trim() : undefined
-  };
-
   setSubmitting(true);
 
   try {
+    // Paso 1: registrar (o recuperar) el cliente para obtener su clientId,
+    // que es lo que exige POST /reservations/public en este backend.
+    const clientResponse = await apiRegisterOrGetClient({
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim()
+    });
+    const clientId = clientResponse.data.id;
+
+    // Paso 2: crear la reserva con el clientId ya resuelto.
+    const payload = {
+      clientId,
+      serviceId: Number(formData.serviceId),
+      startTime: reservationState.selectedSlot.startTime,
+      endTime: reservationState.selectedSlot.endTime,
+      notes: formData.notes ? formData.notes.trim() : undefined
+    };
+
     const response = await apiCreateReservation(payload);
     const { reservation, service } = response.data;
     showFeedback(
@@ -249,7 +257,8 @@ function describeApiError(error, fallbackMessage) {
     SERVICE_NOT_FOUND: 'El servicio seleccionado ya no existe o no está activo.',
     INVALID_TIME_RANGE: 'El rango de horario seleccionado no es válido.',
     RANGE_TOO_LARGE: 'El rango de fechas consultado es demasiado amplio.',
-    VALIDATION_ERROR: 'Alguno de los datos ingresados no es válido.'
+    VALIDATION_ERROR: 'Alguno de los datos ingresados no es válido.',
+    CLIENT_NOT_FOUND: 'No se encontró tu registro de cliente. Verifica tu correo.'
   };
 
   if (error && error.code && knownMessages[error.code]) {
