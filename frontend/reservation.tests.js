@@ -117,6 +117,56 @@ async function run() {
     assert.equal(isValid, true);
   });
 
+  await test('rechaza un teléfono demasiado corto', () => {
+    const { errors } = context.validateReservationForm({
+      serviceId: 1,
+      date: '2099-01-01',
+      startTime: '2099-01-01T10:00:00.000Z',
+      fullName: 'Juan Pérez',
+      email: 'juan@correo.com',
+      phone: '123'
+    });
+    assert.ok(errors.phone);
+  });
+
+  await test('rechaza un nombre de una sola letra', () => {
+    const { errors } = context.validateReservationForm({
+      serviceId: 1,
+      date: '2099-01-01',
+      startTime: '2099-01-01T10:00:00.000Z',
+      fullName: 'J',
+      email: 'juan@correo.com',
+      phone: '3001234567'
+    });
+    assert.ok(errors.fullName);
+  });
+
+  await test('rechaza notas de más de 500 caracteres', () => {
+    const { errors } = context.validateReservationForm({
+      serviceId: 1,
+      date: '2099-01-01',
+      startTime: '2099-01-01T10:00:00.000Z',
+      fullName: 'Juan Pérez',
+      email: 'juan@correo.com',
+      phone: '3001234567',
+      notes: 'a'.repeat(501)
+    });
+    assert.ok(errors.notes);
+  });
+
+  await test('rechaza si no se seleccionó horario (aunque el resto sea válido)', () => {
+    const { isValid, errors } = context.validateReservationForm({
+      serviceId: 1,
+      date: '2099-01-01',
+      startTime: '',
+      fullName: 'Juan Pérez',
+      email: 'juan@correo.com',
+      phone: '3001234567'
+    });
+    assert.equal(isValid, false);
+    assert.ok(errors.time);
+  });
+
   console.log('\nGET /services');
   let services = [];
   await test('carga la lista de servicios activos', async () => {
@@ -134,6 +184,11 @@ async function run() {
     assert.ok(Array.isArray(response.data.slots));
     assert.ok(response.data.slots.length > 0, 'se esperaba al menos un horario disponible');
     slots = response.data.slots;
+  });
+
+  await test('no ofrece un horario ya ocupado (10:00)', () => {
+    const occupied = slots.some((s) => s.startTime.includes('T10:00:00'));
+    assert.equal(occupied, false, 'el slot de las 10:00 debería estar excluido por estar ocupado');
   });
 
   console.log('\nPOST /clients/register + POST /reservations/public');
