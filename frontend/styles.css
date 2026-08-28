@@ -7,6 +7,14 @@
   --bs-secondary: #64748b;
 }
 
+/* ==========================================================================
+   COMPORTAMIENTO GLOBAL (Navegación Suave)
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Evita que el navbar fijo tape los títulos de sección */
+}
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   padding-top: 76px; /* Compensar el fixed-top navbar */
