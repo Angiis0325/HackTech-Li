@@ -27,7 +27,8 @@
                 <ul class="navbar-nav ms-auto align-items-center gap-3">
                     <li class="nav-item"><a class="nav-link active fw-medium" href="#home">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link fw-medium" href="#servicios">Servicios</a></li>
-                    <li class="nav-item"><a class="nav-link fw-medium" href="#sobre-li">Sobre Li</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium" href="#sobre-li">Profesional</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium" href="#experiencias">Experiencias</a></li>
                     <li class="nav-item"><a class="nav-link fw-medium" href="#contacto">Contacto</a></li>
                     <li class="nav-item">
                         <button class="btn btn-primary px-4 rounded-pill shadow-sm" onclick="openReservationModal()">Reservar Cita</button>
@@ -71,7 +72,6 @@
                 </div>
 
                 <div class="row g-4">
-                    <!-- Servicio 1 -->
                     <div class="col-md-4">
                         <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover">
                             <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem;">
@@ -79,15 +79,9 @@
                             </div>
                             <h3 class="h4 fw-bold mb-3">Fisioterapia Deportiva</h3>
                             <p class="text-secondary mb-4">Prevención y rehabilitación de lesiones asociadas a la práctica deportiva.</p>
-                            <ul class="list-unstyled text-start text-secondary mb-4 flex-grow-1">
-                                <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> Evaluación biomecánica</li>
-                                <li><i class="fa-solid fa-check text-success me-2"></i> Reintegro deportivo guiado</li>
-                            </ul>
                             <button class="btn btn-outline-primary rounded-pill w-100 mt-auto" onclick="openReservationModal('Fisioterapia Deportiva')">Reservar Servicio</button>
                         </div>
                     </div>
-
-                    <!-- Servicio 2 -->
                     <div class="col-md-4">
                         <div class="card h-100 border-primary shadow p-4 text-center position-relative transition-hover">
                             <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2">Más Solicitado</span>
@@ -96,15 +90,9 @@
                             </div>
                             <h3 class="h4 fw-bold mb-3">Rehabilitación Funcional</h3>
                             <p class="text-secondary mb-4">Recuperación de movilidad y fuerza tras cirugías o lesiones prolongadas.</p>
-                            <ul class="list-unstyled text-start text-secondary mb-4 flex-grow-1">
-                                <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> Control de dolor y edema</li>
-                                <li><i class="fa-solid fa-check text-success me-2"></i> Fortalecimiento progresivo</li>
-                            </ul>
                             <button class="btn btn-primary rounded-pill w-100 mt-auto" onclick="openReservationModal('Rehabilitación Funcional')">Reservar Servicio</button>
                         </div>
                     </div>
-
-                    <!-- Servicio 3 -->
                     <div class="col-md-4">
                         <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover">
                             <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem;">
@@ -112,10 +100,6 @@
                             </div>
                             <h3 class="h4 fw-bold mb-3">Terapia Manual</h3>
                             <p class="text-secondary mb-4">Alivio de tensiones musculares, contracturas y restricción del movimiento.</p>
-                            <ul class="list-unstyled text-start text-secondary mb-4 flex-grow-1">
-                                <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i> Masaje terapéutico y de descarga</li>
-                                <li><i class="fa-solid fa-check text-success me-2"></i> Movilización articular libre</li>
-                            </ul>
                             <button class="btn btn-outline-primary rounded-pill w-100 mt-auto" onclick="openReservationModal('Terapia Manual')">Reservar Servicio</button>
                         </div>
                     </div>
@@ -123,97 +107,71 @@
             </div>
         </section>
 
-        <!-- Sección 3: Sobre Li -->
+        <!-- Sección 3: Sobre Li (Profesional) -->
         <section id="sobre-li" class="py-5 bg-light">
             <div class="container py-5">
                 <div class="row justify-content-center">
                     <div class="col-lg-8 text-center mb-5">
-                        <span class="text-primary fw-bold text-uppercase tracking-wide">Conoce IPS FisioSalud</span>
+                        <span class="text-primary fw-bold text-uppercase tracking-wide">Conoce a tu Profesional</span>
                         <h2 class="display-6 fw-bold text-dark mb-4">Comprometidos con tu salud integral</h2>
                         <p class="lead text-secondary">
-                            Somos un centro especializado en rehabilitación física focalizado en brindar tratamientos oportunos y efectivos para acompañarte en cada etapa de tu recuperación.
+                            Somos un centro especializado en rehabilitación física focalizado en brindar tratamientos oportunos y efectivos con absoluta confidencialidad y ética profesional.
                         </p>
                     </div>
                 </div>
-                <div class="row g-4 justify-content-center">
-                    <div class="col-md-5">
-                        <div class="d-flex align-items-start bg-white p-4 rounded shadow-sm h-100">
-                            <i class="fa-solid fa-user-doctor text-primary fs-1 me-4 mt-2"></i>
-                            <div>
-                                <h4 class="fw-bold text-dark">Atención Profesional</h4>
-                                <p class="text-secondary mb-0">Personal cualificado e idóneo capacitado para el manejo de tu tratamiento.</p>
+            </div>
+        </section>
+
+        <!-- Sección 4: Experiencias (NUEVA - Basada en retroalimentación del cliente) -->
+        <section id="experiencias" class="py-5 bg-white">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <span class="text-primary fw-bold text-uppercase tracking-wide">Testimonios</span>
+                    <h2 class="display-6 fw-bold text-dark mb-3">La experiencia de nuestros pacientes</h2>
+                    <p class="text-secondary">Conoce las historias de éxito y recuperación de quienes han confiado en nosotros.</p>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm p-4 bg-light">
+                            <div class="text-warning mb-3">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
+                            <p class="text-secondary fst-italic mb-4">"Llegué con un dolor crónico en la espalda y tras unas pocas sesiones de terapia manual, mi calidad de vida mejoró increíblemente. ¡Muy recomendada!"</p>
+                            <h5 class="fw-bold text-dark mb-0">- María G.</h5>
                         </div>
                     </div>
-                    <div class="col-md-5">
-                        <div class="d-flex align-items-start bg-white p-4 rounded shadow-sm h-100">
-                            <i class="fa-solid fa-notes-medical text-primary fs-1 me-4 mt-2"></i>
-                            <div>
-                                <h4 class="fw-bold text-dark">Planes Individualizados</h4>
-                                <p class="text-secondary mb-0">Tratamientos específicos diseñados según la valoración del paciente.</p>
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm p-4 bg-light">
+                            <div class="text-warning mb-3">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
+                            <p class="text-secondary fst-italic mb-4">"El trato es súper profesional y humano. Me explicaron cada paso de mi rehabilitación deportiva. Hoy he vuelto a correr sin molestias."</p>
+                            <h5 class="fw-bold text-dark mb-0">- Carlos R.</h5>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm p-4 bg-light">
+                            <div class="text-warning mb-3">
+                                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                            </div>
+                            <p class="text-secondary fst-italic mb-4">"Instalaciones impecables y un respeto total por la privacidad del paciente. Me sentí seguro y en las mejores manos desde el primer día."</p>
+                            <h5 class="fw-bold text-dark mb-0">- Andrea V.</h5>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Sección 4: Contacto -->
-        <section id="contacto" class="py-5 bg-white">
+        <!-- Sección 5: Contacto -->
+        <section id="contacto" class="py-5 bg-light">
             <div class="container py-5">
                 <div class="text-center mb-5">
                     <span class="text-primary fw-bold text-uppercase tracking-wide">Ubicación y Canales</span>
                     <h2 class="display-6 fw-bold text-dark mb-3">Ponte en Contacto</h2>
-                    <p class="text-secondary">Estamos disponibles para resolver tus dudas y agendar tus servicios.</p>
                 </div>
                 <div class="row g-4 justify-content-center">
-                    <div class="col-lg-10">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-4 border rounded shadow-sm h-100">
-                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-3" style="width: 50px; height: 50px; font-size: 1.25rem;">
-                                        <i class="fa-solid fa-location-dot"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="h5 fw-bold mb-1">Dirección</h4>
-                                        <p class="text-secondary mb-0">Sede Principal IPS FisioSalud</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-4 border rounded shadow-sm h-100">
-                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-3" style="width: 50px; height: 50px; font-size: 1.25rem;">
-                                        <i class="fa-solid fa-envelope"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="h5 fw-bold mb-1">Correo Electrónico</h4>
-                                        <p class="text-secondary mb-0">contacto@fisiosalud.com</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-4 border rounded shadow-sm h-100">
-                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-3" style="width: 50px; height: 50px; font-size: 1.25rem;">
-                                        <i class="fa-solid fa-phone"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="h5 fw-bold mb-1">Teléfono</h4>
-                                        <p class="text-secondary mb-0">+57 (608) 700 0000</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-4 border rounded shadow-sm h-100">
-                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 me-3" style="width: 50px; height: 50px; font-size: 1.25rem;">
-                                        <i class="fa-solid fa-clock"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="h5 fw-bold mb-1">Horario de Atención</h4>
-                                        <p class="text-secondary mb-0">Lunes a Viernes: 8:00 a.m. - 6:00 p.m.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="col-lg-8 text-center">
+                        <p class="text-secondary mb-0"><i class="fa-solid fa-envelope me-2 text-primary"></i> contacto@fisiosalud.com | <i class="fa-solid fa-phone me-2 text-primary ms-3"></i> +57 (608) 700 0000</p>
                     </div>
                 </div>
             </div>
@@ -221,30 +179,28 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-5 text-center">
+    <footer class="bg-dark text-white py-4 text-center">
         <div class="container">
-            <a class="text-white text-decoration-none d-inline-flex align-items-center fw-bold fs-3 mb-3" href="#home">
-                <i class="fa-solid fa-heart-pulse text-primary me-2"></i>
-                Fisio<span class="text-primary">Salud</span>
-            </a>
-            <p class="text-secondary mb-4">Centro especializado en fisioterapia y rehabilitación física.</p>
-            <div class="border-top border-secondary pt-4 mt-4 text-secondary small">
-                <p class="mb-0">&copy; 2026 IPS FisioSalud. Todos los derechos reservados.</p>
-            </div>
+            <p class="mb-0 small text-secondary">&copy; 2026 IPS FisioSalud. Todos los derechos reservados.</p>
         </div>
     </footer>
 
-    <!-- Modal de Reserva (Mantiene los IDs custom para reservation-flow.js) -->
+    <!-- Modal de Reserva -->
     <div class="modal-backdrop-custom" id="modalBackdrop" onclick="closeReservationModal(event)">
         <div class="modal-custom bg-white rounded shadow-lg d-flex flex-column" id="reservationModal" onclick="event.stopPropagation()">
-            <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
-                <h3 class="h5 fw-bold mb-0 text-dark">Agendar Cita Médica</h3>
-                <button class="btn-close" aria-label="Close" onclick="closeReservationModal()"></button>
+            <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-primary text-white rounded-top">
+                <h3 class="h5 fw-bold mb-0"><i class="fa-regular fa-calendar-plus me-2"></i> Agendar Cita</h3>
+                <button class="btn-close btn-close-white" aria-label="Close" onclick="closeReservationModal()"></button>
             </div>
 
             <form id="reservationForm" novalidate class="d-flex flex-column flex-grow-1 overflow-hidden">
                 <div class="p-4 overflow-y-auto flex-grow-1">
-                    <div id="resFeedback" class="reservation-feedback mb-3"></div>
+                    <!-- Feedback visual del Backend -->
+                    <div id="resFeedback" class="reservation-feedback mb-3" style="display: none;"></div>
+
+                    <div class="alert alert-info py-2 small mb-4">
+                        <i class="fa-solid fa-shield-halved me-2"></i>Tus datos están protegidos y serán tratados bajo estricta confidencialidad médica.
+                    </div>
 
                     <div class="mb-3">
                         <label for="resService" class="form-label fw-semibold text-dark">Servicio *</label>
@@ -274,40 +230,34 @@
 
                     <div class="mb-3">
                         <label for="resName" class="form-label fw-semibold text-dark">Nombre Completo *</label>
-                        <input type="text" id="resName" name="fullName" class="form-control" placeholder="Ej. Juan Pérez" required>
-                        <span class="text-danger small mt-1 d-block" id="error-fullName"></span>
+                        <input type="text" id="resName" name="fullName" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="resEmail" class="form-label fw-semibold text-dark">Correo Electrónico *</label>
-                        <input type="email" id="resEmail" name="email" class="form-control" placeholder="ejemplo@correo.com" required>
-                        <span class="text-danger small mt-1 d-block" id="error-email"></span>
+                        <input type="email" id="resEmail" name="email" class="form-control" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="resPhone" class="form-label fw-semibold text-dark">Teléfono / WhatsApp *</label>
-                        <input type="tel" id="resPhone" name="phone" class="form-control" placeholder="300 000 0000" required>
-                        <span class="text-danger small mt-1 d-block" id="error-phone"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="resNotes" class="form-label fw-semibold text-dark">Observaciones (opcional)</label>
-                        <textarea id="resNotes" name="notes" class="form-control" rows="3" placeholder="Describe brevemente tu condición..."></textarea>
-                        <span class="text-danger small mt-1 d-block" id="error-notes"></span>
+                        <input type="tel" id="resPhone" name="phone" class="form-control" required>
                     </div>
                 </div>
 
                 <div class="p-4 border-top d-flex justify-content-end gap-2 bg-light">
                     <button type="button" class="btn btn-secondary" onclick="closeReservationModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary px-4" id="resSubmitBtn">Confirmar Reserva</button>
+                    <!-- Spinner de carga para la integración -->
+                    <button type="submit" class="btn btn-primary px-4 d-flex align-items-center" id="resSubmitBtn">
+                        <span id="btnText">Confirmar Reserva</span>
+                        <span id="btnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle (Necesario para el menú móvil) -->
+    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Scripts auxiliares y lógica principal -->
     <script src="mock-data.js"></script>
     <script src="reservation-config.js"></script>
     <script src="validation.js"></script>
