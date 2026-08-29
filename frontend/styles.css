@@ -121,3 +121,31 @@ body {
   color: #fff !important;
   border-color: var(--bs-primary) !important;
 }
+
+/* ==========================================================================
+   REFINAMIENTOS VISUALES (QA)
+   ========================================================================== */
+/* Scrollbar personalizada para el interior del modal */
+.modal-custom .overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-custom .overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+
+.modal-custom .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--bs-secondary);
+  border-radius: 8px;
+}
+
+.modal-custom .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-primary);
+}
+
+/* Prevenir saltos de diseño cuando el botón cambia de texto */
+#resSubmitBtn {
+  min-width: 180px;
+  justify-content: center;
+}
