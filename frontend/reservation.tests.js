@@ -50,8 +50,14 @@ for (const file of files) {
 }
 
 if (useReal) {
-  context.RESERVATION_CONFIG.USE_MOCK = false;
-  console.log(`\n[Modo REAL] Probando contra ${context.RESERVATION_CONFIG.API_BASE_URL}`);
+  // RESERVATION_CONFIG se declaró con `const` dentro de reservation-config.js,
+  // así que no queda expuesto como context.RESERVATION_CONFIG (a diferencia
+  // de las funciones declaradas con `function`, que sí quedan como
+  // propiedades del contexto). Para leerlo/mutarlo hay que hacerlo con otro
+  // vm.runInContext, ejecutado en ese mismo entorno léxico.
+  vm.runInContext('RESERVATION_CONFIG.USE_MOCK = false;', context, { filename: 'test-setup.js' });
+  const apiBaseUrl = vm.runInContext('RESERVATION_CONFIG.API_BASE_URL', context, { filename: 'test-setup.js' });
+  console.log(`\n[Modo REAL] Probando contra ${apiBaseUrl}`);
   console.log('(el backend debe estar corriendo: npm run dev)\n');
 } else {
   console.log('\n[Modo MOCK] Probando contra mock-data.js (no requiere backend)\n');
@@ -186,12 +192,19 @@ async function run() {
     slots = response.data.slots;
   });
 
-  await test('no ofrece un horario ya ocupado (10:00)', () => {
-    const occupied = slots.some((s) => s.startTime.includes('T10:00:00'));
-    assert.equal(occupied, false, 'el slot de las 10:00 debería estar excluido por estar ocupado');
-  });
+  // El mock (mock-data.js) simula un par de horas siempre "ocupadas" (10:00,
+  // 15:00) como fixture fija. Contra el backend real eso no aplica -si nadie
+  // ha reservado esa hora todavía, está libre de verdad-, así que esa
+  // comprobación específica solo tiene sentido en modo mock.
+  if (!useReal) {
+    await test('no ofrece un horario ya ocupado (10:00) [fixture del mock]', () => {
+      const occupied = slots.some((s) => s.startTime.includes('T10:00:00'));
+      assert.equal(occupied, false, 'el slot de las 10:00 debería estar excluido por estar ocupado');
+    });
+  }
 
   console.log('\nPOST /clients/register + POST /reservations/public');
+  let bookedSlot = null;
   await test('registra un cliente y crea una reserva con datos válidos', async () => {
     const freeSlot = slots.find((s) => !s.startTime.includes('T10:00:00'));
     assert.ok(freeSlot, 'no se encontró un horario libre para la prueba (revisa mock-data.js)');
@@ -214,7 +227,16 @@ async function run() {
     assert.ok(response.data.reservation, 'falta "reservation" en la respuesta');
     assert.ok(response.data.client, 'falta "client" en la respuesta');
     assert.ok(response.data.service, 'falta "service" en la respuesta');
+    bookedSlot = freeSlot;
   });
+
+  if (useReal) {
+    await test('el horario recién reservado ya no aparece en disponibilidad', async () => {
+      const response = await context.apiGetAvailability({ serviceId: services[0].id, date: testDate });
+      const stillFree = response.data.slots.some((s) => s.startTime === bookedSlot.startTime);
+      assert.equal(stillFree, false, 'el slot recién reservado debería haber desaparecido de la disponibilidad');
+    });
+  }
 
   await test('recupera el mismo clientId al registrar el mismo email dos veces', async () => {
     const email = `repetido+${Date.now()}@correo.com`;
@@ -230,13 +252,21 @@ async function run() {
       phone: '3000000000'
     });
 
+    // En modo real reutilizamos el horario que ya se reservó arriba (choque
+    // genuino contra la base de datos). En modo mock usamos las 10:00, que
+    // es el horario que mock-data.js siempre trata como ocupado.
+    const targetSlot = useReal
+      ? bookedSlot
+      : { startTime: `${testDate}T10:00:00.000Z`, endTime: `${testDate}T11:00:00.000Z` };
+    assert.ok(targetSlot, 'no hay un horario de referencia para probar el choque');
+
     await assert.rejects(
       () =>
         context.apiCreateReservation({
           clientId: clientResponse.data.id,
           serviceId: services[0].id,
-          startTime: `${testDate}T10:00:00.000Z`,
-          endTime: `${testDate}T11:00:00.000Z`
+          startTime: targetSlot.startTime,
+          endTime: targetSlot.endTime
         }),
       (error) => {
         assert.equal(error.code, 'SLOT_UNAVAILABLE');
