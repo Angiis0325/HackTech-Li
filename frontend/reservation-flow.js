@@ -7,7 +7,14 @@
  * Depende de: ReservationConfig.js, mock-data.js, reservation-api.js, validation.js
  * IDs esperados en index.html (dentro de #reservationModal):
  *   resService, resDate, resTimeSlots, resStartTime, resEndTime,
- *   resName, resEmail, resPhone, resNotes, resFeedback, reservationForm
+ *   resName, resEmail, resPhone, resFeedback, resSubmitBtn, reservationForm
+ * Opcionales (se manejan de forma defensiva si no existen):
+ *   resNotes, error-fullName, error-email, error-phone, error-notes,
+ *   btnText/btnLoader (spinner del botón de envío)
+ *
+ * Al confirmar una reserva con éxito, dispara window.dispatchEvent(
+ * 'reservationSuccess') para que app.js limpie el formulario y los
+ * horarios visibles (ver resetReservationForm() en app.js).
  */
 
 const reservationState = {
@@ -188,6 +195,11 @@ async function onSubmitReservation(event) {
   clearFeedback();
   clearAllFieldErrors();
 
+  // "resNotes" ya no existe en el modal actual (el compañero de la vista
+  // principal lo quitó del diseño); se deja como opcional para no romper
+  // el envío si el campo llegara a faltar.
+  const notesEl = document.getElementById('resNotes');
+
   const formData = {
     serviceId: reservationState.selectedServiceId,
     date: reservationState.selectedDate,
@@ -195,7 +207,7 @@ async function onSubmitReservation(event) {
     fullName: document.getElementById('resName').value,
     email: document.getElementById('resEmail').value,
     phone: document.getElementById('resPhone').value,
-    notes: document.getElementById('resNotes').value
+    notes: notesEl ? notesEl.value : ''
   };
 
   const { isValid, errors } = validateReservationForm(formData);
@@ -232,9 +244,10 @@ async function onSubmitReservation(event) {
       'success',
       `Reserva confirmada para "${service.name}" el ${formatDateTimeLabel(reservation.start_time)}. Te enviaremos la confirmación por correo.`
     );
-    document.getElementById('reservationForm').reset();
     resetSlotSelection();
-    renderSlotsHint('Selecciona un servicio y una fecha para ver horarios.');
+    // app.js escucha este evento (window.addEventListener('reservationSuccess', ...))
+    // y se encarga de resetear el formulario y los horarios visibles.
+    window.dispatchEvent(new CustomEvent('reservationSuccess', { detail: { reservation, service } }));
   } catch (error) {
     if (error.code === 'VALIDATION_ERROR' && error.details) {
       showFeedback('error', 'El backend rechazó algunos datos del formulario. Revisa la información.');
@@ -275,8 +288,19 @@ function describeApiError(error, fallbackMessage) {
 function setSubmitting(isSubmitting) {
   reservationState.submitting = isSubmitting;
   const btn = document.getElementById('resSubmitBtn');
-  if (btn) {
-    btn.disabled = isSubmitting;
+  if (!btn) return;
+
+  btn.disabled = isSubmitting;
+
+  // El botón ahora trae un spinner propio (#btnText/#btnLoader) en vez de
+  // ser solo texto plano; si existen, los usamos. Si no (por si el modal
+  // cambia de nuevo), caemos de vuelta a btn.textContent para no romper.
+  const btnText = document.getElementById('btnText');
+  const btnLoader = document.getElementById('btnLoader');
+  if (btnText && btnLoader) {
+    btnText.textContent = isSubmitting ? 'Enviando...' : 'Confirmar Reserva';
+    btnLoader.classList.toggle('d-none', !isSubmitting);
+  } else {
     btn.textContent = isSubmitting ? 'Enviando...' : 'Confirmar Reserva';
   }
 }
@@ -290,6 +314,9 @@ function showFeedback(type, message) {
   if (!el) return;
   el.textContent = message;
   el.className = `reservation-feedback reservation-feedback-${type}`;
+  // El div arranca con style="display:none" en el HTML; sin esto el
+  // mensaje quedaría siempre invisible aunque la clase cambie.
+  el.style.display = 'block';
 }
 
 function clearFeedback() {
@@ -297,11 +324,38 @@ function clearFeedback() {
   if (!el) return;
   el.textContent = '';
   el.className = 'reservation-feedback';
+  el.style.display = 'none';
+}
+
+// El modal actual solo trae <span id="error-*"> para service/date/time.
+// fullName/email/phone/notes no tienen dónde mostrar su error puntual.
+// En vez de tocar index.html, los creamos por JS la primera vez que
+// hacen falta, justo después del input correspondiente.
+const FIELD_INPUT_IDS = {
+  fullName: 'resName',
+  email: 'resEmail',
+  phone: 'resPhone',
+  notes: 'resNotes'
+};
+
+function ensureFieldErrorEl(field) {
+  let el = document.getElementById(`error-${field}`);
+  if (el) return el;
+
+  const inputId = FIELD_INPUT_IDS[field];
+  const input = inputId ? document.getElementById(inputId) : null;
+  if (!input) return null;
+
+  el = document.createElement('span');
+  el.id = `error-${field}`;
+  el.className = 'text-danger small mt-1 d-block';
+  input.insertAdjacentElement('afterend', el);
+  return el;
 }
 
 function showFieldErrors(errors) {
   Object.entries(errors).forEach(([field, message]) => {
-    const el = document.getElementById(`error-${field}`);
+    const el = document.getElementById(`error-${field}`) || ensureFieldErrorEl(field);
     if (el) el.textContent = message;
   });
 }
