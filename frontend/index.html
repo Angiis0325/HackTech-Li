@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPS FisioSalud - Centro de Fisioterapia y Rehabilitación</title>
+    <title>La Fisioterapeuta Li - Rehabilitación y Bienestar</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Iconos de FontAwesome -->
@@ -13,25 +13,31 @@
 </head>
 <body data-bs-spy="scroll" data-bs-target="#navegacion" data-bs-offset="80">
 
-    <!-- Navegación Navbar Bootstrap -->
-    <nav class="navbar navbar-expand-lg fixed-top bg-white shadow-sm" id="navegacion">
+    <!-- Navegación Navbar Bootstrap con efecto Glassmorphism -->
+    <nav class="navbar navbar-expand-lg fixed-top bg-white glass-nav shadow-sm" id="navegacion">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center fw-bold fs-4 text-dark" href="#home">
-                <i class="fa-solid fa-heart-pulse text-primary me-2"></i>
-                Fisio<span class="text-primary">Salud</span>
+                <i class="fa-solid fa-heart-pulse text-primary me-2 pulse-icon"></i>
+                La Fisioterapeuta <span class="text-primary ms-1">Li</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLinks" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navLinks" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navLinks">
                 <ul class="navbar-nav ms-auto align-items-center gap-3">
-                    <li class="nav-item"><a class="nav-link active fw-medium" href="#home">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link fw-medium" href="#servicios">Servicios</a></li>
-                    <li class="nav-item"><a class="nav-link fw-medium" href="#sobre-li">Profesional</a></li>
-                    <li class="nav-item"><a class="nav-link fw-medium" href="#experiencias">Experiencias</a></li>
-                    <li class="nav-item"><a class="nav-link fw-medium" href="#contacto">Contacto</a></li>
+                    <li class="nav-item"><a class="nav-link active fw-medium px-2" href="#home">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium px-2" href="#servicios">Servicios</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium px-2" href="#sobre-li">Profesional</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium px-2" href="#experiencias">Experiencias</a></li>
+                    <li class="nav-item"><a class="nav-link fw-medium px-2" href="#contacto">Contacto</a></li>
+                    <!-- Botón de Modo Oscuro / Claro -->
                     <li class="nav-item">
-                        <button class="btn btn-primary px-4 rounded-pill shadow-sm" onclick="openReservationModal()">Reservar Cita</button>
+                        <button class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center shadow-none theme-toggle-btn" id="themeToggleBtn" style="width: 38px; height: 38px;" title="Cambiar Tema">
+                            <i class="fa-solid fa-moon text-primary" id="themeIcon"></i>
+                        </button>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <button class="btn btn-primary px-4 rounded-pill shadow-sm hover-lift" onclick="openReservationModal()">Reservar Cita</button>
                     </li>
                 </ul>
             </div>
@@ -39,21 +45,21 @@
     </nav>
 
     <main>
-        <!-- Sección 1: Home / Inicio -->
-        <section id="home" class="hero-section d-flex align-items-center min-vh-100 bg-light">
+        <!-- Sección 1: Home / Inicio con Fondo Azul Profesional (Hero Gradient) -->
+        <section id="home" class="hero-section hero-gradient d-flex align-items-center min-vh-100 text-white reveal">
             <div class="container text-center pt-5">
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 mb-3 text-uppercase fw-bold">Atención Especializada</span>
-                        <h1 class="display-4 fw-bold text-dark mb-4">Recupera tu movilidad y vive sin dolor</h1>
-                        <p class="lead text-secondary mb-5">
-                            En IPS FisioSalud combinamos técnicas avanzadas de fisioterapia con un enfoque personalizado para ayudarte a alcanzar tu máximo bienestar físico.
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-2 mb-3 text-uppercase fw-bold tracking-wide shadow-sm">Lina Murillo - Fisioterapeuta</span>
+                        <h1 class="display-4 fw-bold text-white mb-4 fade-in-up">Recupera tu movilidad y vive sin dolor</h1>
+                        <p class="lead text-white-50 mb-5 fade-in-up">
+                            Especialistas en Neurorrehabilitación y Rehabilitación Deportiva. Tratamientos profesionales diseñados a tu medida con absoluto rigor clínico.
                         </p>
-                        <div class="d-flex justify-content-center gap-3 flex-wrap">
-                            <button class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm" onclick="openReservationModal()">
+                        <div class="d-flex justify-content-center gap-3 flex-wrap fade-in-up">
+                            <button class="btn btn-light btn-lg px-5 rounded-pill shadow hover-lift py-3 text-primary fw-bold" onclick="openReservationModal()">
                                 <i class="fa-regular fa-calendar-check me-2"></i> Agendar Cita
                             </button>
-                            <a href="#servicios" class="btn btn-outline-secondary btn-lg px-4 rounded-pill shadow-sm">
+                            <a href="#servicios" class="btn btn-outline-light btn-lg px-4 rounded-pill shadow-sm hover-lift py-3">
                                 Ver Servicios
                             </a>
                         </div>
@@ -63,44 +69,44 @@
         </section>
 
         <!-- Sección 2: Servicios -->
-        <section id="servicios" class="py-5 bg-white">
+        <section id="servicios" class="py-5 bg-white reveal">
             <div class="container py-5">
                 <div class="text-center mb-5">
                     <span class="text-primary fw-bold text-uppercase tracking-wide">Nuestra Oferta</span>
                     <h2 class="display-6 fw-bold text-dark mb-3">Servicios Especializados</h2>
-                    <p class="text-secondary">Tratamientos diseñados a la medida para cada etapa de tu recuperación.</p>
+                    <p class="text-secondary">Tratamientos enfocados en resultados efectivos y duraderos.</p>
                 </div>
 
                 <div class="row g-4">
                     <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover">
-                            <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem;">
+                        <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover rounded-4">
+                            <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
                                 <i class="fa-solid fa-person-running"></i>
                             </div>
-                            <h3 class="h4 fw-bold mb-3">Fisioterapia Deportiva</h3>
-                            <p class="text-secondary mb-4">Prevención y rehabilitación de lesiones asociadas a la práctica deportiva.</p>
-                            <button class="btn btn-outline-primary rounded-pill w-100 mt-auto" onclick="openReservationModal('Fisioterapia Deportiva')">Reservar Servicio</button>
+                            <h3 class="h4 fw-bold mb-3">Rehabilitación Deportiva</h3>
+                            <p class="text-secondary mb-4">Prevención y tratamiento de lesiones para atletas recreativos y de alto rendimiento.</p>
+                            <button class="btn btn-outline-primary rounded-pill w-100 mt-auto hover-lift" onclick="openReservationModal('Rehabilitación Deportiva')">Reservar Servicio</button>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card h-100 border-primary shadow p-4 text-center position-relative transition-hover">
-                            <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2">Más Solicitado</span>
-                            <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center mt-3" style="width: 70px; height: 70px; font-size: 2rem;">
+                        <div class="card h-100 border-primary shadow-lg p-4 text-center position-relative transition-hover rounded-4 feature-card">
+                            <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-primary px-3 py-2 shadow-sm">Más Solicitado</span>
+                            <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center mt-3">
                                 <i class="fa-solid fa-hands-holding-child"></i>
                             </div>
-                            <h3 class="h4 fw-bold mb-3">Rehabilitación Funcional</h3>
-                            <p class="text-secondary mb-4">Recuperación de movilidad y fuerza tras cirugías o lesiones prolongadas.</p>
-                            <button class="btn btn-primary rounded-pill w-100 mt-auto" onclick="openReservationModal('Rehabilitación Funcional')">Reservar Servicio</button>
+                            <h3 class="h4 fw-bold mb-3">Descargas Musculares</h3>
+                            <p class="text-secondary mb-4">Modulación postejercicio, presoterapia, terapia manual y pistola percutora.</p>
+                            <button class="btn btn-primary rounded-pill w-100 mt-auto hover-lift shadow-sm" onclick="openReservationModal('Descargas Musculares')">Reservar Servicio</button>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover">
-                            <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 2rem;">
-                                <i class="fa-solid fa-spa"></i>
+                        <div class="card h-100 border-0 shadow-sm p-4 text-center transition-hover rounded-4">
+                            <div class="icon-box bg-primary-subtle text-primary rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center">
+                                <i class="fa-solid fa-brain"></i>
                             </div>
-                            <h3 class="h4 fw-bold mb-3">Terapia Manual</h3>
-                            <p class="text-secondary mb-4">Alivio de tensiones musculares, contracturas y restricción del movimiento.</p>
-                            <button class="btn btn-outline-primary rounded-pill w-100 mt-auto" onclick="openReservationModal('Terapia Manual')">Reservar Servicio</button>
+                            <h3 class="h4 fw-bold mb-3">Neurorrehabilitación</h3>
+                            <p class="text-secondary mb-4">Manejo especializado de condiciones neurológicas para mejorar la calidad de vida.</p>
+                            <button class="btn btn-outline-primary rounded-pill w-100 mt-auto hover-lift" onclick="openReservationModal('Neurorrehabilitación')">Reservar Servicio</button>
                         </div>
                     </div>
                 </div>
@@ -108,22 +114,22 @@
         </section>
 
         <!-- Sección 3: Sobre Li (Profesional) -->
-        <section id="sobre-li" class="py-5 bg-light">
+        <section id="sobre-li" class="py-5 bg-light reveal">
             <div class="container py-5">
                 <div class="row justify-content-center">
                     <div class="col-lg-8 text-center mb-5">
                         <span class="text-primary fw-bold text-uppercase tracking-wide">Conoce a tu Profesional</span>
-                        <h2 class="display-6 fw-bold text-dark mb-4">Comprometidos con tu salud integral</h2>
+                        <h2 class="display-6 fw-bold text-dark mb-4">Lina Murillo</h2>
                         <p class="lead text-secondary">
-                            Somos un centro especializado en rehabilitación física focalizado en brindar tratamientos oportunos y efectivos con absoluta confidencialidad y ética profesional.
+                            Fisioterapeuta egresada de la Universidad de Boyacá, con especialización y maestría en formación en Neurorehabilitación. Certificada en Terapias Alternativas, ATM, Bruxismo y Rehabilitación Deportiva.
                         </p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Sección 4: Experiencias (NUEVA - Basada en retroalimentación del cliente) -->
-        <section id="experiencias" class="py-5 bg-white">
+        <!-- Sección 4: Experiencias -->
+        <section id="experiencias" class="py-5 bg-white reveal">
             <div class="container py-5">
                 <div class="text-center mb-5">
                     <span class="text-primary fw-bold text-uppercase tracking-wide">Testimonios</span>
@@ -132,29 +138,29 @@
                 </div>
                 <div class="row g-4">
                     <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 bg-light">
+                        <div class="card h-100 border-0 shadow-sm p-4 bg-light transition-hover rounded-4">
                             <div class="text-warning mb-3">
                                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
-                            <p class="text-secondary fst-italic mb-4">"Llegué con un dolor crónico en la espalda y tras unas pocas sesiones de terapia manual, mi calidad de vida mejoró increíblemente. ¡Muy recomendada!"</p>
+                            <p class="text-secondary fst-italic mb-4">"Las descargas musculares con ventosas y presoterapia de la Dra. Li cambiaron por completo mi recuperación post-entrenamiento."</p>
                             <h5 class="fw-bold text-dark mb-0">- María G.</h5>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 bg-light">
+                        <div class="card h-100 border-0 shadow-sm p-4 bg-light transition-hover rounded-4">
                             <div class="text-warning mb-3">
                                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
-                            <p class="text-secondary fst-italic mb-4">"El trato es súper profesional y humano. Me explicaron cada paso de mi rehabilitación deportiva. Hoy he vuelto a correr sin molestias."</p>
+                            <p class="text-secondary fst-italic mb-4">"Llegué con un dolor crónico y gracias a la Terapia Neural he podido volver a mi rutina sin molestias. Excelente profesional."</p>
                             <h5 class="fw-bold text-dark mb-0">- Carlos R.</h5>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card h-100 border-0 shadow-sm p-4 bg-light">
+                        <div class="card h-100 border-0 shadow-sm p-4 bg-light transition-hover rounded-4">
                             <div class="text-warning mb-3">
                                 <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
                             </div>
-                            <p class="text-secondary fst-italic mb-4">"Instalaciones impecables y un respeto total por la privacidad del paciente. Me sentí seguro y en las mejores manos desde el primer día."</p>
+                            <p class="text-secondary fst-italic mb-4">"El trato es súper humano. Aproveché la promoción del 10% por referidos y toda mi familia se atiende con ella."</p>
                             <h5 class="fw-bold text-dark mb-0">- Andrea V.</h5>
                         </div>
                     </div>
@@ -163,7 +169,7 @@
         </section>
 
         <!-- Sección 5: Contacto -->
-        <section id="contacto" class="py-5 bg-light">
+        <section id="contacto" class="py-5 bg-light reveal">
             <div class="container py-5">
                 <div class="text-center mb-5">
                     <span class="text-primary fw-bold text-uppercase tracking-wide">Ubicación y Canales</span>
@@ -171,7 +177,8 @@
                 </div>
                 <div class="row g-4 justify-content-center">
                     <div class="col-lg-8 text-center">
-                        <p class="text-secondary mb-0"><i class="fa-solid fa-envelope me-2 text-primary"></i> contacto@fisiosalud.com | <i class="fa-solid fa-phone me-2 text-primary ms-3"></i> +57 (608) 700 0000</p>
+                        <p class="text-secondary mb-2 fs-5"><i class="fa-solid fa-phone me-2 text-primary"></i> <strong>WhatsApp:</strong> 311 398 1422</p>
+                        <p class="text-secondary mb-0"><i class="fa-solid fa-location-dot me-2 text-primary"></i> <strong>Sede Tunja:</strong> Lunes a Viernes | <strong>Sede Turmequé:</strong> Sábados y Domingos</p>
                     </div>
                 </div>
             </div>
@@ -181,16 +188,16 @@
     <!-- Footer -->
     <footer class="bg-dark text-white py-4 text-center">
         <div class="container">
-            <p class="mb-0 small text-secondary">&copy; 2026 IPS FisioSalud. Todos los derechos reservados.</p>
+            <p class="mb-0 small text-secondary">&copy; 2026 La Fisioterapeuta Li. Todos los derechos reservados.</p>
         </div>
     </footer>
 
-    <!-- Modal de Reserva -->
+    <!-- Modal de Reserva con diseño App-Like -->
     <div class="modal-backdrop-custom" id="modalBackdrop" onclick="closeReservationModal(event)">
-        <div class="modal-custom bg-white rounded shadow-lg d-flex flex-column" id="reservationModal" onclick="event.stopPropagation()">
-            <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-primary text-white rounded-top">
+        <div class="modal-custom bg-white rounded-4 shadow-lg d-flex flex-column overflow-hidden" id="reservationModal" onclick="event.stopPropagation()">
+            <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-primary text-white">
                 <h3 class="h5 fw-bold mb-0"><i class="fa-regular fa-calendar-plus me-2"></i> Agendar Cita</h3>
-                <button class="btn-close btn-close-white" aria-label="Close" onclick="closeReservationModal()"></button>
+                <button class="btn-close btn-close-white shadow-none" aria-label="Close" onclick="closeReservationModal()"></button>
             </div>
 
             <form id="reservationForm" novalidate class="d-flex flex-column flex-grow-1 overflow-hidden">
@@ -198,21 +205,37 @@
                     <!-- Feedback visual del Backend -->
                     <div id="resFeedback" class="reservation-feedback mb-3" style="display: none;"></div>
 
-                    <div class="alert alert-info py-2 small mb-4">
-                        <i class="fa-solid fa-shield-halved me-2"></i>Tus datos están protegidos y serán tratados bajo estricta confidencialidad médica.
+                    <div class="alert alert-info py-2 small mb-4 border-0 shadow-sm bg-primary-subtle text-primary">
+                        <i class="fa-solid fa-shield-halved me-2"></i>Pago por adelantado del 100% obligatorio (Nequi: 3113981422).
                     </div>
 
+                    <!-- SERVICIOS REALES INYECTADOS AQUÍ -->
                     <div class="mb-3">
                         <label for="resService" class="form-label fw-semibold text-dark">Servicio *</label>
-                        <select id="resService" name="serviceId" class="form-select" required>
-                            <option value="">Cargando servicios...</option>
+                        <select id="resService" name="serviceId" class="form-select shadow-none" required>
+                            <option value="" selected disabled>Selecciona un servicio...</option>
+                            <optgroup label="Rehabilitación y Valoración">
+                                <option value="1">Valoración Inicial - $100.000</option>
+                                <option value="2">Rehabilitación / Terapia Física (1h) - $100.000</option>
+                            </optgroup>
+                            <optgroup label="Descargas Musculares">
+                                <option value="3">Descarga Espalda (Alta y Baja) - $70.000</option>
+                                <option value="4">Descarga Miembros Inferiores - $90.000</option>
+                                <option value="5">Descarga Cuerpo Completo - $150.000</option>
+                            </optgroup>
+                            <optgroup label="Procedimientos Especializados">
+                                <option value="6">Punción Seca - $120.000</option>
+                                <option value="7">Terapia Neural - $150.000</option>
+                                <option value="8">Plasma Rico en Plaquetas (PRP) - $250.000</option>
+                                <option value="9">Sueroterapia - $300.000</option>
+                            </optgroup>
                         </select>
                         <span class="text-danger small mt-1 d-block" id="error-service"></span>
                     </div>
 
                     <div class="mb-3">
                         <label for="resDate" class="form-label fw-semibold text-dark">Fecha *</label>
-                        <input type="date" id="resDate" name="date" class="form-control" required>
+                        <input type="date" id="resDate" name="date" class="form-control shadow-none" required>
                         <span class="text-danger small mt-1 d-block" id="error-date"></span>
                     </div>
 
@@ -226,28 +249,28 @@
                         <span class="text-danger small mt-1 d-block" id="error-time"></span>
                     </div>
 
-                    <hr class="text-secondary my-4">
+                    <hr class="text-secondary my-4 opacity-25">
 
                     <div class="mb-3">
                         <label for="resName" class="form-label fw-semibold text-dark">Nombre Completo *</label>
-                        <input type="text" id="resName" name="fullName" class="form-control" required>
+                        <input type="text" id="resName" name="fullName" class="form-control shadow-none" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="resEmail" class="form-label fw-semibold text-dark">Correo Electrónico *</label>
-                        <input type="email" id="resEmail" name="email" class="form-control" required>
+                        <input type="email" id="resEmail" name="email" class="form-control shadow-none" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="resPhone" class="form-label fw-semibold text-dark">Teléfono / WhatsApp *</label>
-                        <input type="tel" id="resPhone" name="phone" class="form-control" required>
+                        <input type="tel" id="resPhone" name="phone" class="form-control shadow-none" required>
                     </div>
                 </div>
 
                 <div class="p-4 border-top d-flex justify-content-end gap-2 bg-light">
-                    <button type="button" class="btn btn-secondary" onclick="closeReservationModal()">Cancelar</button>
+                    <button type="button" class="btn btn-outline-secondary px-3 rounded-pill shadow-none" onclick="closeReservationModal()">Cancelar</button>
                     <!-- Spinner de carga para la integración -->
-                    <button type="submit" class="btn btn-primary px-4 d-flex align-items-center" id="resSubmitBtn">
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill d-flex align-items-center shadow-sm hover-lift" id="resSubmitBtn">
                         <span id="btnText">Confirmar Reserva</span>
                         <span id="btnLoader" class="spinner-border spinner-border-sm ms-2 d-none" role="status"></span>
                     </button>
@@ -258,7 +281,6 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="mock-data.js"></script>
     <script src="reservation-config.js"></script>
     <script src="validation.js"></script>
     <script src="reservation-api.js"></script>

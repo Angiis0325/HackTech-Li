@@ -1,6 +1,6 @@
 /**
  * app.js
- * Lógica delegada del Modal de Reservas y utilidades UI para la integración.
+ * Lógica delegada del Modal de Reservas, animaciones SPA, modo oscuro y utilidades UI.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,6 +12,48 @@ document.addEventListener('DOMContentLoaded', () => {
             resetReservationForm();
         }, 2500); // 2.5 segundos
     });
+
+    // Intersection Observer para dar efecto de aparición fluida tipo Portafolio SPA
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // Lógica para el botón de Modo Oscuro / Claro
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+
+    // Cargar preferencia guardada previamente
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (themeIcon) {
+            themeIcon.className = 'fa-solid fa-sun text-warning';
+        }
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            let isDarkMode = document.body.classList.contains('dark-mode');
+
+            if (isDarkMode) {
+                localStorage.setItem('theme', 'dark');
+                themeIcon.className = 'fa-solid fa-sun text-warning';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIcon.className = 'fa-solid fa-moon text-primary';
+            }
+        });
+    }
 });
 
 /* Apertura y Cierre del Modal */
@@ -59,7 +101,6 @@ function resetReservationForm() {
 }
 
 /* Control Visual del Botón de Carga (Spinner) */
-// Nota: reservation-flow.js debe invocar toggleLoadingState(true) al enviar y (false) al recibir respuesta.
 window.toggleLoadingState = function(isLoading) {
     const btn = document.getElementById('resSubmitBtn');
     const text = document.getElementById('btnText');

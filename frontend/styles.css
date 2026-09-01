@@ -5,6 +5,7 @@
   --bs-primary: #0077b6;
   --bs-primary-rgb: 0, 119, 182;
   --bs-secondary: #64748b;
+  --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
@@ -15,23 +16,121 @@ html {
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   padding-top: 76px;
+  overflow-x: hidden;
+  background-color: #fcfdfe;
+}
+
+/* Gradiente Azul Profesional para la Sección Hero */
+.hero-gradient {
+  background: linear-gradient(135deg, #0077b6 0%, #03045e 100%) !important;
+}
+
+/* Glassmorphism Navbar */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos de Modo Oscuro (Dark Mode) */
+body.dark-mode {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+body.dark-mode .glass-nav {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .navbar-brand, 
+body.dark-mode .nav-link {
+  color: #f8fafc !important;
+}
+
+body.dark-mode .bg-white, 
+body.dark-mode .bg-light {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+body.dark-mode .card {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark-mode .text-dark, 
+body.dark-mode .text-secondary {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode footer {
+  background-color: #090d16 !important;
+}
+
+/* Micro-interacciones y Animaciones de Portafolio */
+.hover-lift {
+  transition: var(--transition-smooth);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(var(--bs-primary-rgb), 0.15) !important;
 }
 
 .transition-hover {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: var(--transition-smooth);
 }
 
 .transition-hover:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+  transform: translateY(-8px);
+  box-shadow: 0 1rem 2rem rgba(0,0,0,.08)!important;
+}
+
+.feature-card {
+  border: 2px solid var(--bs-primary) !important;
 }
 
 .tracking-wide {
   letter-spacing: 1.5px;
 }
 
+/* Efecto latido para el logo */
+.pulse-icon {
+  animation: heartbeat 2.5s infinite ease-in-out;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+}
+
+/* Scroll Reveal (Efecto Aparición SPA) */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ==========================================================================
-   MODAL DE RESERVAS E INTEGRACIÓN BACKEND
+   MODAL DE RESERVAS E INTEGRACIÓN BACKEND (Estilo App/Modal React)
    ========================================================================== */
 .modal-backdrop-custom {
   position: fixed;
@@ -39,8 +138,9 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* Ligeramente más oscuro para foco visual */
-  backdrop-filter: blur(4px);
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,6 +160,12 @@ body {
   width: 100%;
   max-width: 550px;
   max-height: 90vh;
+  transform: scale(0.92) translateY(10px);
+  transition: var(--transition-smooth);
+}
+
+.modal-backdrop-custom.active .modal-custom {
+  transform: scale(1) translateY(0);
 }
 
 /* Feedback Backend */
@@ -125,7 +231,6 @@ body {
 /* ==========================================================================
    REFINAMIENTOS VISUALES (QA)
    ========================================================================== */
-/* Scrollbar personalizada para el interior del modal */
 .modal-custom .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
@@ -144,8 +249,18 @@ body {
   background: var(--bs-primary);
 }
 
-/* Prevenir saltos de diseño cuando el botón cambia de texto */
 #resSubmitBtn {
   min-width: 180px;
   justify-content: center;
+}
+
+.icon-box {
+  width: 70px; 
+  height: 70px; 
+  font-size: 2rem;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .icon-box {
+  transform: scale(1.1);
 }
