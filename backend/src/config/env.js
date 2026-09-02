@@ -19,6 +19,7 @@ const env = {
   corsOrigin: process.env.CORS_ORIGIN || "*",
   adminInviteCode: process.env.ADMIN_INVITE_CODE || "",
   n8nWebhookToken: process.env.N8N_WEBHOOK_TOKEN || ""
+  ,n8nWebhookUrl: process.env.N8N_WEBHOOK_URL || ""
 };
 
 module.exports = env;

@@ -55,7 +55,7 @@ async function seedAdmin(client) {
 
   if (existing.length > 0) {
     console.log(`[seed] Usuario admin ya existe (id=${existing[0].id}), se omite.`);
-    return;
+    return existing[0].id;
   }
 
   const passwordHash = await hashPassword(SEED_ADMIN.password);
@@ -69,9 +69,12 @@ async function seedAdmin(client) {
 
   console.log(`[seed] Usuario admin creado: ${rows[0].email} (id=${rows[0].id})`);
   console.log(`[seed] Password temporal: ${SEED_ADMIN.password}`);
+  return rows[0].id;
 }
 
 async function seedServices(client) {
+  const serviceIds = [];
+
   for (const service of SEED_SERVICES) {
     const { rows: existing } = await client.query(
       "SELECT id FROM services WHERE name = $1 LIMIT 1",
@@ -80,6 +83,7 @@ async function seedServices(client) {
 
     if (existing.length > 0) {
       console.log(`[seed] Servicio "${service.name}" ya existe, se omite.`);
+      serviceIds.push(existing[0].id);
       continue;
     }
 
@@ -91,7 +95,28 @@ async function seedServices(client) {
     );
 
     console.log(`[seed] Servicio creado: ${rows[0].name} (id=${rows[0].id})`);
+    serviceIds.push(rows[0].id);
   }
+
+  return serviceIds;
+}
+
+// Vincula al admin sembrado con todos los servicios sembrados en
+// user_services, para que el flujo de "personal que atiende" funcione
+// de una vez al probar el proyecto recién clonado.
+async function seedUserServices(client, adminId, serviceIds) {
+  if (!adminId) return;
+
+  for (const serviceId of serviceIds) {
+    await client.query(
+      `INSERT INTO user_services (user_id, service_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, service_id) DO NOTHING`,
+      [adminId, serviceId]
+    );
+  }
+
+  console.log(`[seed] Admin (id=${adminId}) asignado a ${serviceIds.length} servicio(s) en user_services.`);
 }
 
 async function main() {
@@ -99,8 +124,9 @@ async function main() {
   await client.connect();
 
   try {
-    await seedAdmin(client);
-    await seedServices(client);
+    const adminId = await seedAdmin(client);
+    const serviceIds = await seedServices(client);
+    await seedUserServices(client, adminId, serviceIds);
     console.log("[seed] Semilla completada.");
   } finally {
     await client.end();

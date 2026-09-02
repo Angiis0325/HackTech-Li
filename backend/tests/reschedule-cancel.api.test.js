@@ -23,16 +23,30 @@ async function request(path, options = {}) {
 }
 
 async function createReservation(clientEmail, hourOffset) {
-  const start = new Date(Date.now() + hourOffset * 60 * 60 * 1000);
+  // Se agrega un jitter aleatorio grande para que corridas repetidas del
+  // test no choquen contra reservas dejadas por una corrida anterior.
+  const jitterHours = Math.floor(Math.random() * 17000);
+  const start = new Date(Date.now() + (hourOffset + jitterHours) * 60 * 60 * 1000);
   start.setUTCMinutes(0, 0, 0);
   const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-  const { response, body } = await request("/api/reservations/public", {
+  // El cliente debe existir antes de reservar: se registra primero
+  // (sin login) y se usa el clientId devuelto para crear la reserva.
+  const register = await request("/api/clients/register", {
     method: "POST",
     body: JSON.stringify({
       fullName: "Cliente Reschedule Test",
       email: clientEmail,
-      phone: "3001234567",
+      phone: "3001234567"
+    })
+  });
+  assert.equal(register.response.status, 201, `Register client failed: ${JSON.stringify(register.body)}`);
+  const clientId = register.body.data.id;
+
+  const { response, body } = await request("/api/reservations/public", {
+    method: "POST",
+    body: JSON.stringify({
+      clientId,
       serviceId: 1,
       startTime: start.toISOString(),
       endTime: end.toISOString(),

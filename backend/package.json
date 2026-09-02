@@ -7,9 +7,10 @@
     "dev": "node scripts/dev.js",
     "start": "node src/server.js",
     "migrate": "node scripts/migrate.js",
-    "test": "node --test --test-concurrency=1 tests/smoke.api.test.js",
-    "test:smoke": "node --test --test-concurrency=1 tests/smoke.api.test.js",
-    "seed":"node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "generate-secrets": "node scripts/generate-secrets.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "test:smoke": "node --test --test-concurrency=1 tests/smoke.api.test.js"
   },
   "keywords": [
     "express",
@@ -24,6 +25,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.6.2",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",

@@ -3,12 +3,13 @@ const { createUser, findUserByEmail } = require("../repositories/user.repository
 const { createAuditLog } = require("../repositories/audit.repository");
 const { hashPassword, verifyPassword } = require("../utils/password");
 const { signAccessToken } = require("../utils/jwt");
+const { revokeToken } = require("../repositories/token.repository");
 
 async function register(req, res, next) {
   try {
     const { name, email, password, role = "admin", inviteCode } = req.body;
 
-    if (env.adminInviteCode && inviteCode !== env.adminInviteCode) {
+    if (!env.adminInviteCode || inviteCode !== env.adminInviteCode) {
       return res.status(403).json({
         error: {
           message: "Invalid invite code",
@@ -71,6 +72,16 @@ async function register(req, res, next) {
   }
 }
 
+async function logout(req, res, next) {
+  try {
+    if (!req.user.jti || !req.user.exp) {
+      return res.status(400).json({ error: { message: "Token cannot be revoked", code: "INVALID_TOKEN" } });
+    }
+    await revokeToken({ jti: req.user.jti, userId: req.user.sub, expiresAt: new Date(req.user.exp * 1000) });
+    res.status(204).send();
+  } catch (error) { next(error); }
+}
+
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
@@ -120,4 +131,5 @@ async function login(req, res, next) {
 module.exports = {
   register,
   login
+  ,logout
 };

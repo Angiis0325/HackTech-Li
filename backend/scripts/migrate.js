@@ -4,8 +4,10 @@ const { Client } = require("pg");
 const env = require("../src/config/env");
 
 const migrations = [
-  path.resolve(__dirname, "..", "..", "database", "001_init_backend.sql"),
-  path.resolve(__dirname, "..", "..", "database", "002_audit_and_integrations.sql")
+  path.resolve(__dirname, "..", "database", "001_init_backend.sql"),
+  path.resolve(__dirname, "..", "database", "002_audit_and_integrations.sql"),
+  path.resolve(__dirname, "..", "database", "003_token_revocations.sql"),
+  path.resolve(__dirname, "..", "database", "004_staff_channels_and_log_links.sql")
 ];
 
 async function runMigration(client, migrationPath) {
@@ -15,7 +17,10 @@ async function runMigration(client, migrationPath) {
 }
 
 async function main() {
-  const client = new Client({ connectionString: env.databaseUrl });
+  const client = new Client({
+    connectionString: env.databaseUrl
+  });
+
   await client.connect();
 
   try {

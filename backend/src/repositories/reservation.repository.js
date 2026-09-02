@@ -21,16 +21,20 @@ async function upsertClient(client) {
   return rows[0];
 }
 
-async function hasOverlap(startTime, endTime) {
+async function hasOverlap(startTime, endTime, excludeReservationId = null) {
+  const values = [startTime, endTime];
+  const exclusion = excludeReservationId ? "AND id <> $3" : "";
+  if (excludeReservationId) values.push(excludeReservationId);
   const query = `
     SELECT 1
     FROM reservations
     WHERE status IN ('pending', 'confirmed')
       AND NOT (end_time <= $1::timestamptz OR start_time >= $2::timestamptz)
+      ${exclusion}
     LIMIT 1;
   `;
 
-  const { rows } = await pool.query(query, [startTime, endTime]);
+  const { rows } = await pool.query(query, values);
   return rows.length > 0;
 }
 
@@ -48,14 +52,36 @@ async function listBusyIntervals({ from, to }) {
 }
 
 async function createReservation({ clientId, serviceId, startTime, endTime, notes, source = "web" }) {
+  const client = await pool.connect();
   const query = `
     INSERT INTO reservations (client_id, service_id, start_time, end_time, status, source, notes)
     VALUES ($1, $2, $3::timestamptz, $4::timestamptz, 'pending', $5, $6)
     RETURNING id, client_id, service_id, start_time, end_time, status, source, notes, created_at;
   `;
 
-  const { rows } = await pool.query(query, [clientId, serviceId, startTime, endTime, source, notes || null]);
-  return rows[0];
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock($1)", [987654321]);
+    const overlap = await client.query(
+      `SELECT 1 FROM reservations WHERE status IN ('pending', 'confirmed')
+       AND NOT (end_time <= $1::timestamptz OR start_time >= $2::timestamptz) LIMIT 1`,
+      [startTime, endTime]
+    );
+    if (overlap.rowCount > 0) {
+      const error = new Error("Selected schedule is not available");
+      error.status = 409;
+      error.code = "SLOT_UNAVAILABLE";
+      throw error;
+    }
+    const { rows } = await client.query(query, [clientId, serviceId, startTime, endTime, source, notes || null]);
+    await client.query("COMMIT");
+    return rows[0];
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 async function listReservations({ date, status }) {
@@ -124,49 +150,6 @@ async function getReservationById(id) {
   return rows[0] || null;
 }
 
-async function hasOverlapExcluding(startTime, endTime, excludeId) {
-  const query = `
-    SELECT 1
-    FROM reservations
-    WHERE status IN ('pending', 'confirmed')
-      AND id != $3
-      AND NOT (end_time <= $1::timestamptz OR start_time >= $2::timestamptz)
-    LIMIT 1;
-  `;
-
-  const { rows } = await pool.query(query, [startTime, endTime, excludeId]);
-  return rows.length > 0;
-}
-
-async function rescheduleReservation({ id, startTime, endTime }) {
-  const query = `
-    UPDATE reservations
-    SET start_time = $2::timestamptz,
-        end_time = $3::timestamptz,
-        status = 'pending',
-        synced_at = NULL,
-        updated_at = NOW()
-    WHERE id = $1
-    RETURNING id, client_id, service_id, start_time, end_time, status, calendar_event_id, external_reference, synced_at, updated_at;
-  `;
-
-  const { rows } = await pool.query(query, [id, startTime, endTime]);
-  return rows[0] || null;
-}
-
-async function cancelReservation(id) {
-  const query = `
-    UPDATE reservations
-    SET status = 'cancelled',
-        updated_at = NOW()
-    WHERE id = $1
-    RETURNING id, status, updated_at;
-  `;
-
-  const { rows } = await pool.query(query, [id]);
-  return rows[0] || null;
-}
-
 async function updateReservationStatus(id, status) {
   const query = `
     UPDATE reservations
@@ -177,6 +160,21 @@ async function updateReservationStatus(id, status) {
   `;
 
   const { rows } = await pool.query(query, [id, status]);
+  return rows[0] || null;
+}
+
+async function updateReservationSchedule(id, startTime, endTime) {
+  const query = `
+    UPDATE reservations
+    SET start_time = $2::timestamptz,
+        end_time = $3::timestamptz,
+        status = 'pending',
+        updated_at = NOW()
+    WHERE id = $1
+    RETURNING id, client_id, service_id, start_time, end_time, status, source, notes, updated_at;
+  `;
+
+  const { rows } = await pool.query(query, [id, startTime, endTime]);
   return rows[0] || null;
 }
 
@@ -205,13 +203,11 @@ module.exports = {
   findServiceById,
   upsertClient,
   hasOverlap,
-  hasOverlapExcluding,
   listBusyIntervals,
   createReservation,
   listReservations,
   getReservationById,
   updateReservationStatus,
-  updateReservationStatusByIntegration,
-  rescheduleReservation,
-  cancelReservation
+  updateReservationSchedule,
+  updateReservationStatusByIntegration
 };

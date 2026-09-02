@@ -1,0 +1,11 @@
+const express = require("express");
+const { requireAuth, authorizeRoles } = require("../middlewares/auth");
+const validate = require("../middlewares/validate");
+const { userIdSchema, updateUserSchema } = require("../schemas/user.schema");
+const { getUsers, getUser, patchUser } = require("../controllers/user.controller");
+const router = express.Router();
+router.use(requireAuth, authorizeRoles("admin"));
+router.get("/", getUsers);
+router.get("/:id", validate(userIdSchema), getUser);
+router.patch("/:id", validate(updateUserSchema), patchUser);
+module.exports = router;

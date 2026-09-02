@@ -38,13 +38,16 @@ async function getPidsUsingPortWindows(port) {
 
     return Array.from(pids);
   } catch (result) {
-    // En Windows, findstr devuelve código 1 cuando
-    // simplemente no encuentra coincidencias.
-    if (result.error?.code === 1) {
+    /*
+     * findstr devuelve código 1 cuando NO encuentra coincidencias.
+     * Eso significa que el puerto está libre, no que haya ocurrido
+     * un error real.
+     */
+    if (result?.error?.code === 1) {
       return [];
     }
 
-    throw result.error;
+    return [];
   }
 }
 

@@ -109,6 +109,9 @@ antes de iniciar `nodemon`, para evitar errores `EADDRINUSE`.
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/reservations/public`
+- `PATCH /api/reservations/public/:id/reschedule`
+- `PATCH /api/reservations/public/:id/cancel`
+- `PATCH /api/reservations/:id/reschedule` (auth)
 - `GET /api/reservations/availability` (public)
 - `GET /api/reservations` (auth)
 - `GET /api/reservations/:id` (auth)
@@ -162,7 +165,8 @@ La prueba cubre:
    - Endpoint: `GET /api/reservations/availability`
 
 2. ¿Que datos necesita para crear una reserva?
-   - `fullName`, `email`, `phone`, `serviceId`, `startTime`, `endTime`
+   - Primero registrar el cliente con `fullName`, `email`, `phone`.
+   - Luego enviar `clientId`, `serviceId`, `startTime`, `endTime`
    - Opcional: `notes`
    - Endpoint: `POST /api/reservations/public`
 
@@ -221,7 +225,7 @@ Parciales:
 
 - RF01 (gestion de clientes: hoy se cubre alta/actualizacion automatica via reserva, no CRUD administrativo completo)
 - RF02 (gestion de servicios: listado publico activo implementado, falta CRUD administrativo completo)
-- RF07 y RF08 (modificar/cancelar cubierto por cambio de estado, falta flujo de edicion detallada de fecha/hora para admin)
+- RF08 (cancelacion administrativa permite cambio de estado; la cancelacion publica requiere email)
 - RF12 (usuarios autorizados: registro/login y roles base listos, falta gestion administrativa completa de usuarios)
 
 ## Webhook seguro n8n
@@ -254,3 +258,9 @@ Cuando una reserva pase a `confirmed`, n8n puede disparar:
 3. Notificar por Telegram.
 
 Eso se puede hacer consumiendo `GET /api/reservations` y `PATCH /api/reservations/:id/status`.
+
+## Docker y OpenAPI
+
+- `docker-compose.yml` levanta PostgreSQL y el backend, ejecutando las migraciones al iniciar.
+- `docs/openapi.yaml` contiene el contrato REST principal para Swagger UI, Postman u otras herramientas.
+- `N8N_WEBHOOK_URL` permite notificar a n8n cuando se crea una reserva; si queda vacio, se usa polling.

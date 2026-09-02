@@ -1,45 +1,36 @@
 const express = require("express");
+const { publicReservationLimiter } = require("../middlewares/rateLimit");
 
 const { requireAuth, authorizeRoles } = require("../middlewares/auth");
 const validate = require("../middlewares/validate");
 const {
   createReservationSchema,
+  publicRescheduleSchema,
+  publicCancelSchema,
+  adminRescheduleSchema,
   updateReservationStatusSchema,
   listReservationsSchema,
   reservationIdSchema,
-  availabilitySchema,
-  rescheduleReservationSchema,
-  publicCancelReservationSchema,
-  publicRescheduleReservationSchema
+  availabilitySchema
 } = require("../schemas/reservation.schema");
 const {
   createPublicReservation,
   getReservations,
   getReservation,
   patchReservationStatus,
-  getAvailability,
-  adminRescheduleReservation,
-  publicCancelReservation,
-  publicRescheduleReservation
+  getAvailability
+  ,reschedulePublicReservation
+  ,cancelPublicReservation
+  ,rescheduleReservation
 } = require("../controllers/reservation.controller");
 
 const router = express.Router();
 
-router.post("/public", validate(createReservationSchema), createPublicReservation);
+router.post("/public", publicReservationLimiter, validate(createReservationSchema), createPublicReservation);
+router.patch("/public/:id/reschedule", validate(publicRescheduleSchema), reschedulePublicReservation);
+router.patch("/public/:id/cancel", validate(publicCancelSchema), cancelPublicReservation);
+router.patch("/:id/reschedule", requireAuth, authorizeRoles("admin", "staff"), validate(adminRescheduleSchema), rescheduleReservation);
 router.get("/availability", validate(availabilitySchema), getAvailability);
-
-// Cliente gestiona su propia reserva (sin login, verificado por email)
-router.patch(
-  "/public/:id/cancel",
-  validate(publicCancelReservationSchema),
-  publicCancelReservation
-);
-
-router.patch(
-  "/public/:id/reschedule",
-  validate(publicRescheduleReservationSchema),
-  publicRescheduleReservation
-);
 
 router.get(
   "/",
@@ -63,14 +54,6 @@ router.patch(
   authorizeRoles("admin", "staff"),
   validate(updateReservationStatusSchema),
   patchReservationStatus
-);
-
-router.patch(
-  "/:id/reschedule",
-  requireAuth,
-  authorizeRoles("admin", "staff"),
-  validate(rescheduleReservationSchema),
-  adminRescheduleReservation
 );
 
 module.exports = router;

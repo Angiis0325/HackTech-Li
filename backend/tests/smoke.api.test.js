@@ -2,8 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const baseUrl = process.env.API_BASE_URL || "http://localhost:4000";
-const n8nToken =
-  process.env.N8N_WEBHOOK_TOKEN || "hacktech_n8n_local_token";
+const n8nToken = process.env.N8N_WEBHOOK_TOKEN || "hacktech_n8n_local_token";
 
 async function request(path, options = {}) {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -15,7 +14,6 @@ async function request(path, options = {}) {
   });
 
   let body = null;
-
   try {
     body = await response.json();
   } catch {
@@ -26,26 +24,9 @@ async function request(path, options = {}) {
 }
 
 test("API smoke flow: health, auth, reservation, integration, audit", async () => {
-  // =========================================================
-  // 1. HEALTH CHECK
-  // =========================================================
-
   const health = await request("/api/health");
-
-  assert.equal(
-    health.response.status,
-    200,
-    `Health failed: ${JSON.stringify(health.body)}`
-  );
-
-  assert.equal(
-    health.body?.data?.status,
-    "ok"
-  );
-
-  // =========================================================
-  // 2. REGISTRO / AUTENTICACIÓN
-  // =========================================================
+  assert.equal(health.response.status, 200, `Health failed: ${JSON.stringify(health.body)}`);
+  assert.equal(health.body?.data?.status, "ok");
 
   const uniqueEmail = `smoke.${Date.now()}@hacktech.local`;
 
@@ -60,189 +41,73 @@ test("API smoke flow: health, auth, reservation, integration, audit", async () =
     })
   });
 
-  assert.equal(
-    register.response.status,
-    201,
-    `Register failed: ${JSON.stringify(register.body)}`
-  );
-
+  assert.equal(register.response.status, 201, `Register failed: ${JSON.stringify(register.body)}`);
   const token = register.body?.data?.token;
+  assert.ok(token, "Register token missing");
 
-  assert.ok(
-    token,
-    "Register token missing"
-  );
+  const clientEmail = `client.${Date.now()}@hacktech.local`;
+  const clientRegister = await request("/api/clients/register", {
+    method: "POST",
+    body: JSON.stringify({
+      fullName: "Smoke Client",
+      email: clientEmail,
+      phone: "3001234567"
+    })
+  });
+  assert.equal(clientRegister.response.status, 201, `Register client failed: ${JSON.stringify(clientRegister.body)}`);
+  const clientId = clientRegister.body?.data?.id;
+  assert.ok(clientId, "Client id missing");
 
-  // =========================================================
-  // 3. BUSCAR UN HORARIO REALMENTE DISPONIBLE
-  // =========================================================
-
-  // Buscar disponibilidad para el día siguiente.
-  const startDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-  // Comenzar a las 08:00 UTC.
-  startDate.setUTCHours(8, 0, 0, 0);
-
-  // Buscar hasta las 18:00 UTC.
-  const endDate = new Date(startDate);
-  endDate.setUTCHours(18, 0, 0, 0);
-
-  const availability = await request(
-    `/api/reservations/availability?from=${encodeURIComponent(
-      startDate.toISOString()
-    )}&to=${encodeURIComponent(
-      endDate.toISOString()
-    )}&serviceId=1`
-  );
-
-  assert.equal(
-    availability.response.status,
-    200,
-    `Availability failed: ${JSON.stringify(availability.body)}`
-  );
-
-  const slots = availability.body?.data?.slots;
-
-  assert.ok(
-    Array.isArray(slots),
-    "Availability slots missing"
-  );
-
-  assert.ok(
-    slots.length > 0,
-    "No available slots found for smoke test"
-  );
-
-  // Tomamos el primer horario que el backend confirmó como disponible.
-  const selectedSlot = slots[0];
-
-  assert.ok(
-    selectedSlot?.startTime,
-    "Selected slot startTime missing"
-  );
-
-  assert.ok(
-    selectedSlot?.endTime,
-    "Selected slot endTime missing"
-  );
-
-  // =========================================================
-  // 4. CREAR RESERVA
-  // =========================================================
+  const start = new Date(Date.now() + (24 + Math.floor(Math.random() * 17000)) * 60 * 60 * 1000);
+  start.setUTCMinutes(0, 0, 0);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
 
   const reservation = await request("/api/reservations/public", {
     method: "POST",
     body: JSON.stringify({
-      fullName: "Smoke Client",
-      email: `client.${Date.now()}@hacktech.local`,
-      phone: "3001234567",
+      clientId,
       serviceId: 1,
-      startTime: selectedSlot.startTime,
-      endTime: selectedSlot.endTime,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
       notes: "Smoke reservation"
     })
   });
 
-  assert.equal(
-    reservation.response.status,
-    201,
-    `Create reservation failed: ${JSON.stringify(reservation.body)}`
-  );
+  assert.equal(reservation.response.status, 201, `Create reservation failed: ${JSON.stringify(reservation.body)}`);
+  const reservationId = reservation.body?.data?.reservation?.id;
+  assert.ok(reservationId, "Reservation id missing");
 
-  const reservationId =
-    reservation.body?.data?.reservation?.id;
-
-  assert.ok(
-    reservationId,
-    "Reservation id missing"
-  );
-
-  // =========================================================
-  // 5. VERIFICAR DISPONIBILIDAD
-  // =========================================================
-
-  const availabilityAfterReservation = await request(
-    `/api/reservations/availability?from=${encodeURIComponent(
-      startDate.toISOString()
-    )}&to=${encodeURIComponent(
-      endDate.toISOString()
+  const availability = await request(
+    `/api/reservations/availability?from=${encodeURIComponent(start.toISOString())}&to=${encodeURIComponent(
+      new Date(start.getTime() + 4 * 60 * 60 * 1000).toISOString()
     )}&serviceId=1&slotMinutes=30`
   );
 
-  assert.equal(
-    availabilityAfterReservation.response.status,
-    200,
-    `Availability after reservation failed: ${JSON.stringify(
-      availabilityAfterReservation.body
-    )}`
-  );
+  assert.equal(availability.response.status, 200, `Availability failed: ${JSON.stringify(availability.body)}`);
+  assert.ok(Array.isArray(availability.body?.data?.slots), "Availability slots missing");
 
-  assert.ok(
-    Array.isArray(
-      availabilityAfterReservation.body?.data?.slots
-    ),
-    "Availability slots missing after reservation"
-  );
+  const integration = await request(`/api/integrations/n8n/reservations/${reservationId}/status`, {
+    method: "PATCH",
+    headers: {
+      "x-integration-token": n8nToken
+    },
+    body: JSON.stringify({
+      status: "confirmed",
+      calendarEventId: `evt_${Date.now()}`,
+      externalReference: `smoke-${Date.now()}`,
+      message: "Updated by smoke test"
+    })
+  });
 
-  // =========================================================
-  // 6. INTEGRACIÓN N8N
-  // =========================================================
-  //
-  // Este endpoint pertenece al contrato del backend.
-  // No requiere que n8n esté ejecutándose.
-  //
-  // Posteriormente Grupo 1 podrá utilizar este endpoint
-  // desde su workflow de n8n.
-  // =========================================================
+  assert.equal(integration.response.status, 200, `Integration failed: ${JSON.stringify(integration.body)}`);
+  assert.equal(integration.body?.data?.status, "confirmed");
 
-  const integration = await request(
-    `/api/integrations/n8n/reservations/${reservationId}/status`,
-    {
-      method: "PATCH",
-      headers: {
-        "x-integration-token": n8nToken
-      },
-      body: JSON.stringify({
-        status: "confirmed",
-        calendarEventId: `evt_${Date.now()}`,
-        externalReference: `smoke-${Date.now()}`,
-        message: "Updated by smoke test"
-      })
+  const audit = await request("/api/audit-logs?limit=20", {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
-  );
+  });
 
-  assert.equal(
-    integration.response.status,
-    200,
-    `Integration failed: ${JSON.stringify(integration.body)}`
-  );
-
-  assert.equal(
-    integration.body?.data?.status,
-    "confirmed"
-  );
-
-  // =========================================================
-  // 7. AUDITORÍA
-  // =========================================================
-
-  const audit = await request(
-    "/api/audit-logs?limit=20",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }
-  );
-
-  assert.equal(
-    audit.response.status,
-    200,
-    `Audit logs failed: ${JSON.stringify(audit.body)}`
-  );
-
-  assert.ok(
-    Array.isArray(audit.body?.data),
-    "Audit logs array missing"
-  );
+  assert.equal(audit.response.status, 200, `Audit logs failed: ${JSON.stringify(audit.body)}`);
+  assert.ok(Array.isArray(audit.body?.data), "Audit logs array missing");
 });

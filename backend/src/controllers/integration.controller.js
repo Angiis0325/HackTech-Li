@@ -3,6 +3,7 @@ const {
   updateReservationStatusByIntegration
 } = require("../repositories/reservation.repository");
 const { createAuditLog } = require("../repositories/audit.repository");
+const { listChannelsForReservation } = require("../repositories/client.repository");
 
 async function updateReservationFromN8n(req, res, next) {
   try {
@@ -49,6 +50,15 @@ async function updateReservationFromN8n(req, res, next) {
   }
 }
 
+async function getReservationChannels(req, res, next) {
+  try {
+    const reservation = await getReservationById(req.params.id);
+    if (!reservation) return res.status(404).json({ error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" } });
+    res.json({ data: await listChannelsForReservation(req.params.id) });
+  } catch (error) { next(error); }
+}
+
 module.exports = {
   updateReservationFromN8n
+  ,getReservationChannels
 };

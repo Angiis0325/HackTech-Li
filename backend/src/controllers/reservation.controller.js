@@ -1,25 +1,43 @@
 const {
   findServiceById,
-  upsertClient,
   hasOverlap,
-  hasOverlapExcluding,
   listBusyIntervals,
   createReservation,
   listReservations,
   getReservationById,
   updateReservationStatus,
-  rescheduleReservation,
-  cancelReservation
+  updateReservationSchedule
 } = require("../repositories/reservation.repository");
+const { findClientById: findClient } = require("../repositories/client.repository");
 const { createAuditLog } = require("../repositories/audit.repository");
 const { buildAvailableSlots } = require("../utils/availability");
+const env = require("../config/env");
+
+async function notifyN8n(reservation) {
+  if (!env.n8nWebhookUrl) return;
+  try {
+    await fetch(env.n8nWebhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-integration-token": env.n8nWebhookToken },
+      body: JSON.stringify({ event: "reservation.created", reservation })
+    });
+  } catch (error) {
+    if (env.nodeEnv !== "test") console.error("n8n notification failed:", error.message);
+  }
+}
 
 async function createPublicReservation(req, res, next) {
   try {
-    const { fullName, email, phone, serviceId, startTime, endTime, notes } = req.body;
+    const { clientId, serviceId, startTime, endTime, notes } = req.body;
 
     const start = new Date(startTime);
     const end = new Date(endTime);
+
+    if (start <= new Date()) {
+      return res.status(400).json({
+        error: { message: "startTime must be in the future", code: "INVALID_TIME_RANGE" }
+      });
+    }
 
     if (end <= start) {
       return res.status(400).json({
@@ -40,6 +58,13 @@ async function createPublicReservation(req, res, next) {
       });
     }
 
+    const client = await findClient(clientId);
+    if (!client) {
+      return res.status(404).json({
+        error: { message: "Client not found", code: "CLIENT_NOT_FOUND" }
+      });
+    }
+
     const overlap = await hasOverlap(startTime, endTime);
     if (overlap) {
       return res.status(409).json({
@@ -50,9 +75,8 @@ async function createPublicReservation(req, res, next) {
       });
     }
 
-    const client = await upsertClient({ fullName, email, phone });
     const reservation = await createReservation({
-      clientId: client.id,
+      clientId,
       serviceId,
       startTime,
       endTime,
@@ -73,6 +97,7 @@ async function createPublicReservation(req, res, next) {
         source: "web"
       }
     });
+    await notifyN8n(reservation);
 
     res.status(201).json({
       data: {
@@ -88,6 +113,96 @@ async function createPublicReservation(req, res, next) {
   } catch (error) {
     next(error);
   }
+}
+
+async function reschedulePublicReservation(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { email, startTime, endTime } = req.body;
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const reservation = await getReservationById(id);
+
+    if (!reservation) {
+      return res.status(404).json({ error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" } });
+    }
+    if (reservation.client_email.toLowerCase() !== email.toLowerCase()) {
+      return res.status(403).json({ error: { message: "Email does not match reservation client", code: "EMAIL_MISMATCH" } });
+    }
+    if (end <= start) {
+      return res.status(400).json({ error: { message: "endTime must be greater than startTime", code: "INVALID_TIME_RANGE" } });
+    }
+    if (reservation.status !== "pending" && reservation.status !== "confirmed") {
+      return res.status(409).json({ error: { message: "Reservation is not active", code: "RESERVATION_NOT_ACTIVE" } });
+    }
+    if (await hasOverlap(startTime, endTime, id)) {
+      return res.status(409).json({ error: { message: "Selected schedule is not available", code: "SLOT_UNAVAILABLE" } });
+    }
+
+    const updated = await updateReservationSchedule(id, startTime, endTime);
+    await createAuditLog({
+      actorType: "public",
+      actorId: reservation.client_email,
+      action: "reservation.rescheduled",
+      entity: "reservation",
+      entityId: String(id),
+      metadata: { startTime, endTime, source: "public_api" }
+    });
+    res.json({ data: updated });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function cancelPublicReservation(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+    const reservation = await getReservationById(id);
+
+    if (!reservation) {
+      return res.status(404).json({ error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" } });
+    }
+    if (reservation.client_email.toLowerCase() !== email.toLowerCase()) {
+      return res.status(403).json({ error: { message: "Email does not match reservation client", code: "EMAIL_MISMATCH" } });
+    }
+    if (reservation.status !== "pending" && reservation.status !== "confirmed") {
+      return res.status(409).json({
+        error: { message: "Reservation is not active", code: "RESERVATION_NOT_ACTIVE" }
+      });
+    }
+
+    const updated = await updateReservationStatus(id, "cancelled");
+    await createAuditLog({
+      actorType: "public",
+      actorId: reservation.client_email,
+      action: "reservation.cancelled",
+      entity: "reservation",
+      entityId: String(id),
+      metadata: { source: "public_api" }
+    });
+    res.json({ data: updated });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function rescheduleReservation(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { startTime, endTime } = req.body;
+    const reservation = await getReservationById(id);
+    if (!reservation) return res.status(404).json({ error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" } });
+    if (new Date(endTime) <= new Date(startTime)) {
+      return res.status(400).json({ error: { message: "endTime must be greater than startTime", code: "INVALID_TIME_RANGE" } });
+    }
+    if (await hasOverlap(startTime, endTime, id)) {
+      return res.status(409).json({ error: { message: "Selected schedule is not available", code: "SLOT_UNAVAILABLE" } });
+    }
+    const updated = await updateReservationSchedule(id, startTime, endTime);
+    await createAuditLog({ actorType: "user", actorId: String(req.user.sub), userId: req.user.sub, action: "reservation.rescheduled", entity: "reservation", entityId: String(id), reservationId: id, metadata: { startTime, endTime } });
+    res.json({ data: updated });
+  } catch (error) { next(error); }
 }
 
 async function getReservations(req, res, next) {
@@ -155,170 +270,6 @@ async function patchReservationStatus(req, res, next) {
     res.json({
       data: updated
     });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const ACTIVE_STATUSES = ["pending", "confirmed"];
-
-function isReservationOwner(reservation, email) {
-  return reservation.client_email?.toLowerCase() === email.trim().toLowerCase();
-}
-
-async function validateAndReschedule({ id, startTime, endTime }) {
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-
-  if (end <= start) {
-    return { error: { status: 400, message: "endTime must be greater than startTime", code: "INVALID_TIME_RANGE" } };
-  }
-
-  const overlap = await hasOverlapExcluding(startTime, endTime, id);
-  if (overlap) {
-    return { error: { status: 409, message: "Selected schedule is not available", code: "SLOT_UNAVAILABLE" } };
-  }
-
-  const updated = await rescheduleReservation({ id, startTime, endTime });
-  return { updated };
-}
-
-// --- Admin/staff: reprogramar (requiere JWT) ---
-async function adminRescheduleReservation(req, res, next) {
-  try {
-    const { id } = req.params;
-    const { startTime, endTime } = req.body;
-
-    const reservation = await getReservationById(id);
-    if (!reservation) {
-      return res.status(404).json({
-        error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" }
-      });
-    }
-
-    if (!ACTIVE_STATUSES.includes(reservation.status)) {
-      return res.status(409).json({
-        error: { message: "Only pending or confirmed reservations can be rescheduled", code: "RESERVATION_NOT_ACTIVE" }
-      });
-    }
-
-    const { error, updated } = await validateAndReschedule({ id, startTime, endTime });
-    if (error) {
-      return res.status(error.status).json({ error: { message: error.message, code: error.code } });
-    }
-
-    await createAuditLog({
-      actorType: "user",
-      actorId: req.user ? String(req.user.sub) : null,
-      action: "reservation.rescheduled",
-      entity: "reservation",
-      entityId: String(id),
-      metadata: {
-        fromStartTime: reservation.start_time,
-        fromEndTime: reservation.end_time,
-        toStartTime: startTime,
-        toEndTime: endTime,
-        source: "admin_api"
-      }
-    });
-
-    res.json({ data: updated });
-  } catch (error) {
-    next(error);
-  }
-}
-
-// --- Cliente: cancelar su propia reserva (publico, verifica email) ---
-async function publicCancelReservation(req, res, next) {
-  try {
-    const { id } = req.params;
-    const { email } = req.body;
-
-    const reservation = await getReservationById(id);
-    if (!reservation) {
-      return res.status(404).json({
-        error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" }
-      });
-    }
-
-    if (!isReservationOwner(reservation, email)) {
-      return res.status(403).json({
-        error: { message: "Email does not match this reservation", code: "EMAIL_MISMATCH" }
-      });
-    }
-
-    if (!ACTIVE_STATUSES.includes(reservation.status)) {
-      return res.status(409).json({
-        error: { message: "Only pending or confirmed reservations can be cancelled", code: "RESERVATION_NOT_ACTIVE" }
-      });
-    }
-
-    const updated = await cancelReservation(id);
-
-    await createAuditLog({
-      actorType: "public",
-      actorId: email,
-      action: "reservation.cancelled",
-      entity: "reservation",
-      entityId: String(id),
-      metadata: {
-        fromStatus: reservation.status,
-        source: "public_web"
-      }
-    });
-
-    res.json({ data: updated });
-  } catch (error) {
-    next(error);
-  }
-}
-
-// --- Cliente: reprogramar su propia reserva (publico, verifica email) ---
-async function publicRescheduleReservation(req, res, next) {
-  try {
-    const { id } = req.params;
-    const { email, startTime, endTime } = req.body;
-
-    const reservation = await getReservationById(id);
-    if (!reservation) {
-      return res.status(404).json({
-        error: { message: "Reservation not found", code: "RESERVATION_NOT_FOUND" }
-      });
-    }
-
-    if (!isReservationOwner(reservation, email)) {
-      return res.status(403).json({
-        error: { message: "Email does not match this reservation", code: "EMAIL_MISMATCH" }
-      });
-    }
-
-    if (!ACTIVE_STATUSES.includes(reservation.status)) {
-      return res.status(409).json({
-        error: { message: "Only pending or confirmed reservations can be rescheduled", code: "RESERVATION_NOT_ACTIVE" }
-      });
-    }
-
-    const { error, updated } = await validateAndReschedule({ id, startTime, endTime });
-    if (error) {
-      return res.status(error.status).json({ error: { message: error.message, code: error.code } });
-    }
-
-    await createAuditLog({
-      actorType: "public",
-      actorId: email,
-      action: "reservation.rescheduled",
-      entity: "reservation",
-      entityId: String(id),
-      metadata: {
-        fromStartTime: reservation.start_time,
-        fromEndTime: reservation.end_time,
-        toStartTime: startTime,
-        toEndTime: endTime,
-        source: "public_web"
-      }
-    });
-
-    res.json({ data: updated });
   } catch (error) {
     next(error);
   }
@@ -415,8 +366,8 @@ module.exports = {
   getReservations,
   getReservation,
   patchReservationStatus,
-  getAvailability,
-  adminRescheduleReservation,
-  publicCancelReservation,
-  publicRescheduleReservation
+  getAvailability
+  ,reschedulePublicReservation
+  ,cancelPublicReservation
+  ,rescheduleReservation
 };
