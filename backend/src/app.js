@@ -6,14 +6,11 @@ const morgan = require("morgan");
 const env = require("./config/env");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
-const clientRoutes = require("./routes/client.routes");
 const serviceRoutes = require("./routes/service.routes");
 const reservationRoutes = require("./routes/reservation.routes");
 const integrationRoutes = require("./routes/integration.routes");
 const auditRoutes = require("./routes/audit.routes");
-const staffRoutes = require("./routes/staff.routes");
-const userRoutes = require("./routes/user.routes");
-const dashboardRoutes = require("./routes/dashboard.routes");
+const fileRoutes = require("./routes/file.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -40,19 +37,20 @@ app.get("/api", (req, res) => {
 			endpoints: [
 				"GET /api/health",
 				"GET /api/services",
-				"POST /api/clients/register",
-				"GET /api/clients/lookup",
 				"POST /api/auth/register",
 				"POST /api/auth/login",
 				"POST /api/reservations/public",
-				"PATCH /api/reservations/public/:id/reschedule",
-				"PATCH /api/reservations/public/:id/cancel",
 				"GET /api/reservations/availability",
+				"PATCH /api/reservations/public/:id/cancel",
+				"PATCH /api/reservations/public/:id/reschedule",
 				"GET /api/reservations (auth)",
 				"GET /api/reservations/:id (auth)",
 				"PATCH /api/reservations/:id/status (auth)",
-				"GET /api/staff (auth)",
-				"GET /api/users (admin)",
+				"PATCH /api/reservations/:id/reschedule (auth)",
+				"POST /api/files/public (multipart, client attachments)",
+				"POST /api/files/reservations/:reservationId (auth, medical history)",
+				"GET /api/files/reservations/:reservationId (auth)",
+				"GET /api/files/:id/download (auth)",
 				"PATCH /api/integrations/n8n/reservations/:id/status (token)",
 				"GET /api/audit-logs (auth)"
 			]
@@ -62,14 +60,11 @@ app.get("/api", (req, res) => {
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/clients", clientRoutes);
 app.use("/api/services", serviceRoutes);
-app.use("/api/staff", staffRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/integrations", integrationRoutes);
 app.use("/api/audit-logs", auditRoutes);
+app.use("/api/files", fileRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

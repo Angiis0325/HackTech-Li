@@ -109,15 +109,25 @@ antes de iniciar `nodemon`, para evitar errores `EADDRINUSE`.
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `POST /api/reservations/public`
-- `PATCH /api/reservations/public/:id/reschedule`
-- `PATCH /api/reservations/public/:id/cancel`
-- `PATCH /api/reservations/:id/reschedule` (auth)
 - `GET /api/reservations/availability` (public)
 - `GET /api/reservations` (auth)
 - `GET /api/reservations/:id` (auth)
 - `PATCH /api/reservations/:id/status` (auth)
 - `PATCH /api/integrations/n8n/reservations/:id/status` (token)
 - `GET /api/audit-logs` (auth)
+- `POST /api/files/public` (multipart, cliente)
+- `POST /api/files/reservations/:reservationId` (multipart, auth; historia clínica)
+- `GET /api/files/reservations/:reservationId` (auth)
+- `GET /api/files/:id/download` (auth)
+
+## Carga de archivos
+
+Los archivos se guardan fuera de una carpeta pública y sus metadatos quedan en la tabla `files`.
+Ejecuta `npm run migrate` para crearla. Los límites por defecto son 10 MB por archivo y 5 archivos por petición; se configuran con `MAX_FILE_SIZE_BYTES` y `MAX_FILES_PER_REQUEST`.
+
+Para el cliente, usa `POST /api/files/public` como `multipart/form-data` y envía los campos `reservationId`, `email` y uno o más campos `files`. El correo debe coincidir con el correo de la reserva.
+
+Para el personal clínico, usa `POST /api/files/reservations/:reservationId` con `Authorization: Bearer <token>`, uno o más campos `files` y el campo opcional `category`: `medical_history` (por defecto) o `client_attachment`. Los roles `doctor`, `staff` y `admin` tienen acceso a este apartado. Los tipos aceptados son PDF, JPG, PNG, WEBP y DOCX.
 
 ## Disponibilidad para frontend
 
@@ -165,8 +175,7 @@ La prueba cubre:
    - Endpoint: `GET /api/reservations/availability`
 
 2. ¿Que datos necesita para crear una reserva?
-   - Primero registrar el cliente con `fullName`, `email`, `phone`.
-   - Luego enviar `clientId`, `serviceId`, `startTime`, `endTime`
+   - `fullName`, `email`, `phone`, `serviceId`, `startTime`, `endTime`
    - Opcional: `notes`
    - Endpoint: `POST /api/reservations/public`
 
@@ -225,7 +234,7 @@ Parciales:
 
 - RF01 (gestion de clientes: hoy se cubre alta/actualizacion automatica via reserva, no CRUD administrativo completo)
 - RF02 (gestion de servicios: listado publico activo implementado, falta CRUD administrativo completo)
-- RF08 (cancelacion administrativa permite cambio de estado; la cancelacion publica requiere email)
+- RF07 y RF08 (modificar/cancelar cubierto por cambio de estado, falta flujo de edicion detallada de fecha/hora para admin)
 - RF12 (usuarios autorizados: registro/login y roles base listos, falta gestion administrativa completa de usuarios)
 
 ## Webhook seguro n8n
@@ -258,9 +267,3 @@ Cuando una reserva pase a `confirmed`, n8n puede disparar:
 3. Notificar por Telegram.
 
 Eso se puede hacer consumiendo `GET /api/reservations` y `PATCH /api/reservations/:id/status`.
-
-## Docker y OpenAPI
-
-- `docker-compose.yml` levanta PostgreSQL y el backend, ejecutando las migraciones al iniciar.
-- `docs/openapi.yaml` contiene el contrato REST principal para Swagger UI, Postman u otras herramientas.
-- `N8N_WEBHOOK_URL` permite notificar a n8n cuando se crea una reserva; si queda vacio, se usa polling.

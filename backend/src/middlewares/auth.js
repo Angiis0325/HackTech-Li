@@ -1,7 +1,6 @@
 const { verifyAccessToken } = require("../utils/jwt");
-const { isTokenRevoked } = require("../repositories/token.repository");
 
-async function requireAuth(req, res, next) {
+function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || "";
   const [scheme, token] = authHeader.split(" ");
 
@@ -16,9 +15,6 @@ async function requireAuth(req, res, next) {
 
   try {
     req.user = verifyAccessToken(token);
-    if (await isTokenRevoked(req.user.jti)) {
-      return res.status(401).json({ error: { message: "Invalid or expired token", code: "UNAUTHORIZED" } });
-    }
     next();
   } catch (error) {
     return res.status(401).json({
