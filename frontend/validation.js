@@ -80,3 +80,51 @@ function validateReservationForm(data) {
 
   return { isValid: Object.keys(errors).length === 0, errors };
 }
+
+/**
+ * Reglas alineadas con backend/src/middlewares/fileUpload.js:
+ *   - Máximo 5 archivos por envío (MAX_FILES_PER_REQUEST)
+ *   - Máximo 10MB por archivo (MAX_FILE_SIZE_BYTES)
+ *   - Tipos permitidos: PDF, JPG, PNG, WEBP, DOCX
+ * La carga de archivos es opcional: si no se seleccionó ninguno, es válido.
+ *
+ * @param {FileList|File[]} fileList
+ * @returns {{ isValid: boolean, errors: Object<string,string> }}
+ */
+const RESERVATION_ALLOWED_FILE_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+]);
+const RESERVATION_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const RESERVATION_MAX_FILES = 5;
+
+function validateFiles(fileList) {
+  const errors = {};
+  const files = fileList ? Array.from(fileList) : [];
+
+  if (files.length === 0) {
+    return { isValid: true, errors };
+  }
+
+  if (files.length > RESERVATION_MAX_FILES) {
+    errors.files = `Puedes adjuntar máximo ${RESERVATION_MAX_FILES} archivos.`;
+    return { isValid: false, errors };
+  }
+
+  const invalidType = files.find((file) => !RESERVATION_ALLOWED_FILE_TYPES.has(file.type));
+  if (invalidType) {
+    errors.files = `"${invalidType.name}" no es un tipo de archivo permitido (solo PDF, JPG, PNG, WEBP o DOCX).`;
+    return { isValid: false, errors };
+  }
+
+  const tooLarge = files.find((file) => file.size > RESERVATION_MAX_FILE_SIZE_BYTES);
+  if (tooLarge) {
+    errors.files = `"${tooLarge.name}" pesa más de 10MB.`;
+    return { isValid: false, errors };
+  }
+
+  return { isValid: true, errors };
+}

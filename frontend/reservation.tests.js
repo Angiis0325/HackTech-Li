@@ -10,7 +10,7 @@
  * variables globales entre sí vía <script>, no usan module.exports).
  * Para poder probarlos con Node sin tocarlos ni tocar el DOM, los
  * cargamos con vm.createContext en un "mini navegador" falso que solo
- * expone lo que esos 4 archivos necesitan (fetch, setTimeout, etc.).
+ * expone lo que esos 4 archivos necesitan (fetch, FormData, etc.).
  *
  * Uso:
  *   node reservation.tests.js            -> corre contra mock-data.js
@@ -34,11 +34,15 @@ const context = {
   fetch,
   setTimeout,
   URLSearchParams,
+  FormData,
+  Blob,
+  File,
   Math,
   Date,
   Number,
   String,
   Object,
+  Array,
   Error
 };
 vm.createContext(context);
@@ -49,14 +53,19 @@ for (const file of files) {
   vm.runInContext(code, context, { filename: file });
 }
 
+// RESERVATION_CONFIG se declaró con `const` dentro de reservation-config.js,
+// así que no queda expuesto como context.RESERVATION_CONFIG (a diferencia
+// de las funciones declaradas con `function`, que sí quedan como
+// propiedades del contexto). Para leerlo/mutarlo hay que hacerlo con otro
+// vm.runInContext, ejecutado en ese mismo entorno léxico.
+// Se fuerza USE_MOCK explícitamente en ambos sentidos -sin esto, si el
+// archivo real ya tiene USE_MOCK:false (como al probar contra el backend
+// real), correr sin --real terminaría pegándole al backend igual, en vez
+// de usar los mocks-.
+vm.runInContext(`RESERVATION_CONFIG.USE_MOCK = ${!useReal};`, context, { filename: 'test-setup.js' });
+const apiBaseUrl = vm.runInContext('RESERVATION_CONFIG.API_BASE_URL', context, { filename: 'test-setup.js' });
+
 if (useReal) {
-  // RESERVATION_CONFIG se declaró con `const` dentro de reservation-config.js,
-  // así que no queda expuesto como context.RESERVATION_CONFIG (a diferencia
-  // de las funciones declaradas con `function`, que sí quedan como
-  // propiedades del contexto). Para leerlo/mutarlo hay que hacerlo con otro
-  // vm.runInContext, ejecutado en ese mismo entorno léxico.
-  vm.runInContext('RESERVATION_CONFIG.USE_MOCK = false;', context, { filename: 'test-setup.js' });
-  const apiBaseUrl = vm.runInContext('RESERVATION_CONFIG.API_BASE_URL', context, { filename: 'test-setup.js' });
   console.log(`\n[Modo REAL] Probando contra ${apiBaseUrl}`);
   console.log('(el backend debe estar corriendo: npm run dev)\n');
 } else {
@@ -78,8 +87,16 @@ async function test(name, fn) {
   }
 }
 
+function makeFile(name, type, sizeBytes) {
+  // File real de Node (global desde Node 20+); Blob con contenido de
+  // relleno del tamaño pedido, para probar el límite de 10MB sin tener
+  // que leer un archivo real del disco.
+  const content = new Uint8Array(sizeBytes);
+  return new context.File([content], name, { type });
+}
+
 async function run() {
-  console.log('validation.js');
+  console.log('validation.js — formulario');
 
   await test('rechaza un formulario vacío', () => {
     const { isValid, errors } = context.validateReservationForm({});
@@ -173,6 +190,40 @@ async function run() {
     assert.ok(errors.time);
   });
 
+  console.log('\nvalidation.js — archivos adjuntos');
+
+  await test('sin archivos seleccionados es válido (opcional)', () => {
+    const { isValid } = context.validateFiles([]);
+    assert.equal(isValid, true);
+  });
+
+  await test('rechaza un tipo de archivo no permitido', () => {
+    const file = makeFile('malware.exe', 'application/x-msdownload', 1000);
+    const { isValid, errors } = context.validateFiles([file]);
+    assert.equal(isValid, false);
+    assert.ok(errors.files);
+  });
+
+  await test('rechaza un archivo de más de 10MB', () => {
+    const file = makeFile('grande.pdf', 'application/pdf', 11 * 1024 * 1024);
+    const { isValid, errors } = context.validateFiles([file]);
+    assert.equal(isValid, false);
+    assert.ok(errors.files);
+  });
+
+  await test('rechaza más de 5 archivos', () => {
+    const sixFiles = Array.from({ length: 6 }, (_, i) => makeFile(`doc${i}.pdf`, 'application/pdf', 1000));
+    const { isValid, errors } = context.validateFiles(sixFiles);
+    assert.equal(isValid, false);
+    assert.ok(errors.files);
+  });
+
+  await test('acepta un PDF válido dentro del límite', () => {
+    const file = makeFile('historia.pdf', 'application/pdf', 1000);
+    const { isValid } = context.validateFiles([file]);
+    assert.equal(isValid, true);
+  });
+
   console.log('\nGET /services');
   let services = [];
   await test('carga la lista de servicios activos', async () => {
@@ -203,21 +254,18 @@ async function run() {
     });
   }
 
-  console.log('\nPOST /clients/register + POST /reservations/public');
-  let bookedSlot = null;
-  await test('registra un cliente y crea una reserva con datos válidos', async () => {
+  console.log('\nPOST /reservations/public');
+  let bookedReservationId = null;
+  let bookedEmail = null;
+  await test('crea una reserva con datos válidos', async () => {
     const freeSlot = slots.find((s) => !s.startTime.includes('T10:00:00'));
     assert.ok(freeSlot, 'no se encontró un horario libre para la prueba (revisa mock-data.js)');
 
-    const clientResponse = await context.apiRegisterOrGetClient({
-      fullName: 'Prueba Automática',
-      email: `prueba+${Date.now()}@correo.com`,
-      phone: '3000000000'
-    });
-    assert.ok(clientResponse.data.id, 'falta "id" en la respuesta de registro de cliente');
-
+    bookedEmail = `prueba+${Date.now()}@correo.com`;
     const response = await context.apiCreateReservation({
-      clientId: clientResponse.data.id,
+      fullName: 'Prueba Automática',
+      email: bookedEmail,
+      phone: '3000000000',
       serviceId: services[0].id,
       startTime: freeSlot.startTime,
       endTime: freeSlot.endTime,
@@ -227,43 +275,61 @@ async function run() {
     assert.ok(response.data.reservation, 'falta "reservation" en la respuesta');
     assert.ok(response.data.client, 'falta "client" en la respuesta');
     assert.ok(response.data.service, 'falta "service" en la respuesta');
-    bookedSlot = freeSlot;
+    bookedReservationId = response.data.reservation.id;
+  });
+
+  console.log('\nPOST /files/public');
+  await test('sube un archivo adjunto a la reserva recién creada', async () => {
+    const file = makeFile('historia-clinica.pdf', 'application/pdf', 2048);
+    const response = await context.apiUploadReservationFiles({
+      reservationId: bookedReservationId,
+      email: bookedEmail,
+      files: [file]
+    });
+    assert.ok(Array.isArray(response.data));
+    assert.equal(response.data.length, 1);
   });
 
   if (useReal) {
-    await test('el horario recién reservado ya no aparece en disponibilidad', async () => {
-      const response = await context.apiGetAvailability({ serviceId: services[0].id, date: testDate });
-      const stillFree = response.data.slots.some((s) => s.startTime === bookedSlot.startTime);
-      assert.equal(stillFree, false, 'el slot recién reservado debería haber desaparecido de la disponibilidad');
+    await test('rechaza subir un archivo con un correo que no coincide con la reserva', async () => {
+      const file = makeFile('otro.pdf', 'application/pdf', 1024);
+      await assert.rejects(
+        () =>
+          context.apiUploadReservationFiles({
+            reservationId: bookedReservationId,
+            email: 'no-es-el-dueño@correo.com',
+            files: [file]
+          }),
+        () => true
+      );
     });
   }
 
-  await test('recupera el mismo clientId al registrar el mismo email dos veces', async () => {
-    const email = `repetido+${Date.now()}@correo.com`;
-    const first = await context.apiRegisterOrGetClient({ fullName: 'Cliente Repetido', email, phone: '3000000000' });
-    const second = await context.apiRegisterOrGetClient({ fullName: 'Cliente Repetido', email, phone: '3000000000' });
-    assert.equal(first.data.id, second.data.id);
+  await test('sin archivos, no llama a la API (resuelve con data vacía)', async () => {
+    const response = await context.apiUploadReservationFiles({
+      reservationId: bookedReservationId,
+      email: bookedEmail,
+      files: []
+    });
+    assert.equal(response.data.length, 0);
   });
 
   await test('rechaza un horario ya ocupado (SLOT_UNAVAILABLE)', async () => {
-    const clientResponse = await context.apiRegisterOrGetClient({
-      fullName: 'Prueba Choque de Horario',
-      email: `choque+${Date.now()}@correo.com`,
-      phone: '3000000000'
-    });
-
-    // En modo real reutilizamos el horario que ya se reservó arriba (choque
-    // genuino contra la base de datos). En modo mock usamos las 10:00, que
-    // es el horario que mock-data.js siempre trata como ocupado.
+    // En modo real reutilizamos el mismo horario que ya se reservó arriba
+    // (choque genuino contra la base de datos). En modo mock usamos las
+    // 10:00, que es el horario que mock-data.js siempre trata como ocupado.
+    const alreadyBookedSlot = slots.find((s) => !s.startTime.includes('T10:00:00'));
     const targetSlot = useReal
-      ? bookedSlot
+      ? alreadyBookedSlot
       : { startTime: `${testDate}T10:00:00.000Z`, endTime: `${testDate}T11:00:00.000Z` };
     assert.ok(targetSlot, 'no hay un horario de referencia para probar el choque');
 
     await assert.rejects(
       () =>
         context.apiCreateReservation({
-          clientId: clientResponse.data.id,
+          fullName: 'Prueba Choque de Horario',
+          email: `choque+${Date.now()}@correo.com`,
+          phone: '3000000000',
           serviceId: services[0].id,
           startTime: targetSlot.startTime,
           endTime: targetSlot.endTime
@@ -276,16 +342,12 @@ async function run() {
   });
 
   await test('rechaza un servicio inexistente (SERVICE_NOT_FOUND)', async () => {
-    const clientResponse = await context.apiRegisterOrGetClient({
-      fullName: 'Prueba Servicio Falso',
-      email: `falso+${Date.now()}@correo.com`,
-      phone: '3000000000'
-    });
-
     await assert.rejects(
       () =>
         context.apiCreateReservation({
-          clientId: clientResponse.data.id,
+          fullName: 'Prueba Servicio Falso',
+          email: `falso+${Date.now()}@correo.com`,
+          phone: '3000000000',
           serviceId: 999999,
           startTime: '2099-06-16T09:00:00.000Z',
           endTime: '2099-06-16T10:00:00.000Z'

@@ -77,39 +77,12 @@ function buildMockAvailability({ serviceId, date }) {
 }
 
 /**
- * Simula POST /api/clients/register (registro o recuperación de
- * cliente por email) -> { data: {...} }. Se guarda en memoria durante
- * la sesión del navegador para que, si el mismo email vuelve a
- * reservar, reciba el mismo id (igual que haría el backend real con
- * la restricción UNIQUE en email -> CLIENT_ALREADY_EXISTS).
- */
-const MOCK_CLIENTS_BY_EMAIL = {};
-let mockClientAutoId = 1000;
-
-function buildMockClient({ fullName, email, phone }) {
-  const key = email.trim().toLowerCase();
-  if (MOCK_CLIENTS_BY_EMAIL[key]) {
-    return MOCK_CLIENTS_BY_EMAIL[key];
-  }
-
-  mockClientAutoId += 1;
-  const client = { id: mockClientAutoId, full_name: fullName, email, phone };
-  MOCK_CLIENTS_BY_EMAIL[key] = client;
-  return client;
-}
-
-/**
  * Replica la respuesta 201 de POST /api/reservations/public -> { data: {...} }
+ * Este backend arma el cliente internamente (upsertClient) a partir de
+ * fullName/email/phone recibidos directo en el body -no hay clientId-.
  */
 function buildMockReservationSuccess(payload) {
   const service = MOCK_SERVICES.find((s) => s.id === Number(payload.serviceId));
-  const client =
-    Object.values(MOCK_CLIENTS_BY_EMAIL).find((c) => c.id === Number(payload.clientId)) || {
-      id: payload.clientId,
-      full_name: 'Cliente',
-      email: '',
-      phone: ''
-    };
 
   return {
     data: {
@@ -121,7 +94,12 @@ function buildMockReservationSuccess(payload) {
         status: 'pending',
         notes: payload.notes || null
       },
-      client,
+      client: {
+        id: Math.floor(Math.random() * 100000),
+        full_name: payload.fullName,
+        email: payload.email,
+        phone: payload.phone
+      },
       service: {
         id: service ? service.id : payload.serviceId,
         name: service ? service.name : 'Servicio',
@@ -129,4 +107,19 @@ function buildMockReservationSuccess(payload) {
       }
     }
   };
+}
+
+/**
+ * Replica la respuesta 201 de POST /api/files/public -> { data: [...] }
+ * (ver backend/src/controllers/file.controller.js: serializeFile).
+ */
+function buildMockFileUploadSuccess(files) {
+  return Array.from(files).map((file, index) => ({
+    id: Math.floor(Math.random() * 100000) + index,
+    original_name: file.name,
+    mime_type: file.type,
+    size_bytes: file.size,
+    category: 'client_attachment',
+    downloadUrl: `#mock-download-${file.name}`
+  }));
 }

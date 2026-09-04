@@ -2,7 +2,8 @@
  * reservation-flow.js
  * Maneja el flujo completo del formulario de reserva del modal:
  * carga de servicios, disponibilidad por servicio/fecha, selección de
- * horario, validación y envío al backend o a los mocks.
+ * horario, validación, carga de archivos adjuntos y envío al backend
+ * o a los mocks.
  *
  * Depende de: ReservationConfig.js, mock-data.js, reservation-api.js, validation.js
  * IDs esperados en index.html (dentro de #reservationModal):
@@ -10,7 +11,10 @@
  *   resName, resEmail, resPhone, resFeedback, resSubmitBtn, reservationForm
  * Opcionales (se manejan de forma defensiva si no existen):
  *   resNotes, error-fullName, error-email, error-phone, error-notes,
- *   btnText/btnLoader (spinner del botón de envío)
+ *   btnText/btnLoader (spinner del botón de envío, o window.toggleLoadingState)
+ * Creados por este archivo en tiempo de ejecución (index.html no los trae):
+ *   error-fullName/email/phone/notes/files, y el campo #resFiles completo
+ *   (carga de archivos) justo después de #resPhone.
  *
  * Al confirmar una reserva con éxito, dispara window.dispatchEvent(
  * 'reservationSuccess') para que app.js limpie el formulario y los
@@ -48,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', onSubmitReservation);
   }
 
+  ensureFileInputEl();
   loadServices();
 });
 
@@ -199,6 +204,7 @@ async function onSubmitReservation(event) {
   // principal lo quitó del diseño); se deja como opcional para no romper
   // el envío si el campo llegara a faltar.
   const notesEl = document.getElementById('resNotes');
+  const filesEl = document.getElementById('resFiles');
 
   const formData = {
     serviceId: reservationState.selectedServiceId,
@@ -211,8 +217,11 @@ async function onSubmitReservation(event) {
   };
 
   const { isValid, errors } = validateReservationForm(formData);
-  if (!isValid) {
-    showFieldErrors(errors);
+  const filesResult = validateFiles(filesEl ? filesEl.files : null);
+  const allErrors = { ...errors, ...filesResult.errors };
+
+  if (!isValid || !filesResult.isValid) {
+    showFieldErrors(allErrors);
     showFeedback('error', 'Revisa los campos marcados antes de continuar.');
     return;
   }
@@ -220,18 +229,12 @@ async function onSubmitReservation(event) {
   setSubmitting(true);
 
   try {
-    // Paso 1: registrar (o recuperar) el cliente para obtener su clientId,
-    // que es lo que exige POST /reservations/public en este backend.
-    const clientResponse = await apiRegisterOrGetClient({
+    // Este backend arma/reutiliza el cliente internamente a partir de
+    // fullName/email/phone (no exige un clientId previo).
+    const payload = {
       fullName: formData.fullName.trim(),
       email: formData.email.trim(),
-      phone: formData.phone.trim()
-    });
-    const clientId = clientResponse.data.id;
-
-    // Paso 2: crear la reserva con el clientId ya resuelto.
-    const payload = {
-      clientId,
+      phone: formData.phone.trim(),
       serviceId: Number(formData.serviceId),
       startTime: reservationState.selectedSlot.startTime,
       endTime: reservationState.selectedSlot.endTime,
@@ -240,10 +243,27 @@ async function onSubmitReservation(event) {
 
     const response = await apiCreateReservation(payload);
     const { reservation, service } = response.data;
-    showFeedback(
-      'success',
-      `Reserva confirmada para "${service.name}" el ${formatDateTimeLabel(reservation.start_time)}. Te enviaremos la confirmación por correo.`
-    );
+
+    let successMessage = `Reserva confirmada para "${service.name}" el ${formatDateTimeLabel(reservation.start_time)}. Te enviaremos la confirmación por correo.`;
+
+    // La reserva ya quedó creada aunque la subida de archivos falle -no
+    // queremos que un problema con un adjunto le haga perder la cita al
+    // usuario-, así que este paso nunca lanza: solo agrega una nota al
+    // mensaje de éxito si algo sale mal.
+    if (filesEl && filesEl.files && filesEl.files.length > 0) {
+      try {
+        await apiUploadReservationFiles({
+          reservationId: reservation.id,
+          email: payload.email,
+          files: filesEl.files
+        });
+        successMessage += ' Tus archivos adjuntos se subieron correctamente.';
+      } catch (uploadError) {
+        successMessage += ` Sin embargo, no se pudieron subir los archivos adjuntos (${describeApiError(uploadError, 'error desconocido')}). Puedes intentar reenviarlos más tarde.`;
+      }
+    }
+
+    showFeedback('success', successMessage);
     resetSlotSelection();
     // app.js escucha este evento (window.addEventListener('reservationSuccess', ...))
     // y se encarga de resetear el formulario y los horarios visibles.
@@ -271,7 +291,11 @@ function describeApiError(error, fallbackMessage) {
     INVALID_TIME_RANGE: 'El rango de horario seleccionado no es válido.',
     RANGE_TOO_LARGE: 'El rango de fechas consultado es demasiado amplio.',
     VALIDATION_ERROR: 'Alguno de los datos ingresados no es válido.',
-    CLIENT_NOT_FOUND: 'No se encontró tu registro de cliente. Verifica tu correo.'
+    UNSUPPORTED_FILE_TYPE: 'Uno de los archivos no tiene un formato permitido.',
+    INVALID_FILE_UPLOAD: 'Faltan datos para subir el archivo.',
+    FILE_UPLOAD_LIMIT_EXCEEDED: 'Uno de los archivos excede el límite permitido.',
+    RESERVATION_NOT_FOUND: 'No se encontró la reserva para adjuntar el archivo.',
+    EMAIL_MISMATCH: 'El correo no coincide con el de la reserva.'
   };
 
   if (error && error.code && knownMessages[error.code]) {
@@ -287,14 +311,20 @@ function describeApiError(error, fallbackMessage) {
 
 function setSubmitting(isSubmitting) {
   reservationState.submitting = isSubmitting;
+
+  // app.js ahora expone su propio helper para el spinner del botón
+  // (window.toggleLoadingState); lo usamos si existe para no duplicar
+  // lógica. Si no está disponible, hacemos el toggle nosotros mismos.
+  if (typeof window.toggleLoadingState === 'function') {
+    window.toggleLoadingState(isSubmitting);
+    return;
+  }
+
   const btn = document.getElementById('resSubmitBtn');
   if (!btn) return;
 
   btn.disabled = isSubmitting;
 
-  // El botón ahora trae un spinner propio (#btnText/#btnLoader) en vez de
-  // ser solo texto plano; si existen, los usamos. Si no (por si el modal
-  // cambia de nuevo), caemos de vuelta a btn.textContent para no romper.
   const btnText = document.getElementById('btnText');
   const btnLoader = document.getElementById('btnLoader');
   if (btnText && btnLoader) {
@@ -335,7 +365,8 @@ const FIELD_INPUT_IDS = {
   fullName: 'resName',
   email: 'resEmail',
   phone: 'resPhone',
-  notes: 'resNotes'
+  notes: 'resNotes',
+  files: 'resFiles'
 };
 
 function ensureFieldErrorEl(field) {
@@ -353,6 +384,31 @@ function ensureFieldErrorEl(field) {
   return el;
 }
 
+/**
+ * Crea el campo "Adjuntar documentos" por JS (índice.html no lo trae, y
+ * no lo tocamos). Se inserta justo después del campo de teléfono, dentro
+ * del propio <form>, así form.reset() también lo limpia solo.
+ */
+function ensureFileInputEl() {
+  if (document.getElementById('resFiles')) return;
+
+  const phoneField = document.getElementById('resPhone');
+  if (!phoneField) return;
+  const phoneGroup = phoneField.closest('.mb-3') || phoneField;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'mb-3';
+  wrapper.innerHTML = `
+    <label for="resFiles" class="form-label fw-semibold text-dark">Adjuntar documentos (opcional)</label>
+    <input type="file" id="resFiles" name="files" class="form-control shadow-none" multiple
+           accept=".pdf,.jpg,.jpeg,.png,.webp,.docx">
+    <small class="text-secondary d-block mt-1">PDF, JPG, PNG, WEBP o DOCX. Máximo 5 archivos, 10MB cada uno.</small>
+    <span class="text-danger small mt-1 d-block" id="error-files"></span>
+  `;
+
+  phoneGroup.insertAdjacentElement('afterend', wrapper);
+}
+
 function showFieldErrors(errors) {
   Object.entries(errors).forEach(([field, message]) => {
     const el = document.getElementById(`error-${field}`) || ensureFieldErrorEl(field);
@@ -366,7 +422,7 @@ function clearFieldError(field) {
 }
 
 function clearAllFieldErrors() {
-  ['service', 'date', 'time', 'fullName', 'email', 'phone', 'notes'].forEach(clearFieldError);
+  ['service', 'date', 'time', 'fullName', 'email', 'phone', 'notes', 'files'].forEach(clearFieldError);
 }
 
 function todayAsInputValue() {

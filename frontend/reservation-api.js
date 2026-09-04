@@ -13,39 +13,6 @@ async function apiGetServices() {
   }
 }
 
-/**
- * Registra al cliente (o recupera el existente) para obtener su
- * clientId, que es lo que exige POST /reservations/public (ver
- * src/schemas/reservation.schema.js: createReservationSchema).
- *
- * Flujo: intenta registrar -> si el backend responde 409
- * CLIENT_ALREADY_EXISTS (mismo email ya registrado), reutiliza el
- * clientId que el propio error trae en `details.clientId`, sin
- * necesidad de una segunda llamada a /clients/lookup.
- */
-async function apiRegisterOrGetClient({ fullName, email, phone }) {
-  if (RESERVATION_CONFIG.USE_MOCK) {
-    await mockDelay();
-    return { data: buildMockClient({ fullName, email, phone }) };
-  }
-
-  try {
-    const res = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/clients/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, email, phone })
-    });
-
-    return await handleApiResponse(res);
-  } catch (error) {
-    const normalized = normalizeNetworkError(error);
-    if (normalized.code === 'CLIENT_ALREADY_EXISTS' && normalized.details && normalized.details.clientId) {
-      return { data: { id: normalized.details.clientId, full_name: fullName, email, phone } };
-    }
-    throw normalized;
-  }
-}
-
 async function apiGetAvailability({ serviceId, date }) {
   if (RESERVATION_CONFIG.USE_MOCK) {
     await mockDelay();
@@ -64,6 +31,13 @@ async function apiGetAvailability({ serviceId, date }) {
   }
 }
 
+/**
+ * Este backend crea (o reutiliza, vía upsertClient) al cliente
+ * internamente a partir de fullName/email/phone -no exige un clientId
+ * previo, a diferencia de otra variante del backend que sí lo pedía
+ * (ver src/controllers/reservation.controller.js: createPublicReservation
+ * llama a upsertClient() él mismo).
+ */
 async function apiCreateReservation(payload) {
   if (RESERVATION_CONFIG.USE_MOCK) {
     await mockDelay();
@@ -95,6 +69,44 @@ async function apiCreateReservation(payload) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
+    });
+
+    return await handleApiResponse(res);
+  } catch (error) {
+    throw normalizeNetworkError(error);
+  }
+}
+
+/**
+ * Sube archivos adjuntos a una reserva ya creada (POST /api/files/public,
+ * ver backend/src/routes/file.routes.js + file.controller.js:
+ * uploadPublicFiles). El backend exige reservationId + email -el mismo
+ * correo con el que se creó la reserva, para verificar que quien sube
+ * el archivo es el dueño de la reserva- y al menos un archivo.
+ * Tipos permitidos: PDF, JPG, PNG, WEBP, DOCX. Límite: 10MB c/u, 5 por
+ * envío (ver backend/src/middlewares/fileUpload.js).
+ */
+async function apiUploadReservationFiles({ reservationId, email, files }) {
+  if (!files || files.length === 0) {
+    return { data: [] };
+  }
+
+  if (RESERVATION_CONFIG.USE_MOCK) {
+    await mockDelay();
+    return { data: buildMockFileUploadSuccess(files) };
+  }
+
+  const formData = new FormData();
+  formData.append('reservationId', String(reservationId));
+  formData.append('email', email);
+  Array.from(files).forEach((file) => formData.append('files', file));
+
+  try {
+    // Sin header Content-Type manual: el navegador arma el
+    // multipart/form-data con el boundary correcto por sí solo.
+    const res = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/files/public`, {
+      method: 'POST',
+      body: formData
     });
 
     return await handleApiResponse(res);
