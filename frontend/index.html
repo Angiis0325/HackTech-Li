@@ -45,7 +45,7 @@
     </nav>
 
     <main>
-        <!-- Sección 1: Home / Inicio con Fondo Azul Profesional (Hero Gradient) -->
+        <!-- Sección 1: Home / Inicio -->
         <section id="home" class="hero-section hero-gradient d-flex align-items-center min-vh-100 text-white reveal">
             <div class="container text-center pt-5">
                 <div class="row justify-content-center">
@@ -200,7 +200,8 @@
                 <button class="btn-close btn-close-white shadow-none" aria-label="Close" onclick="closeReservationModal()"></button>
             </div>
 
-            <form id="reservationForm" novalidate class="d-flex flex-column flex-grow-1 overflow-hidden">
+            <!-- Importante: enctype para que middleware fileUpload.js del backend lo acepte -->
+            <form id="reservationForm" novalidate class="d-flex flex-column flex-grow-1 overflow-hidden" enctype="multipart/form-data">
                 <div class="p-4 overflow-y-auto flex-grow-1">
                     <!-- Feedback visual del Backend -->
                     <div id="resFeedback" class="reservation-feedback mb-3" style="display: none;"></div>
@@ -264,6 +265,24 @@
                     <div class="mb-3">
                         <label for="resPhone" class="form-label fw-semibold text-dark">Teléfono / WhatsApp *</label>
                         <input type="tel" id="resPhone" name="phone" class="form-control shadow-none" required>
+                    </div>
+
+                    <hr class="text-secondary my-4 opacity-25">
+                    
+                    <!-- ÚNICO COMPONENTE UNIFICADO DE CARGA DE ARCHIVOS -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold text-dark">Adjuntar documentos (Opcional)</label>
+                        <div class="file-upload-wrapper position-relative">
+                            <input type="file" id="resFile" name="archivos" class="form-control shadow-none file-upload-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.docx" multiple>
+                            <div class="file-upload-design d-flex flex-column align-items-center justify-content-center p-4 text-center border rounded-4 transition-hover bg-light">
+                                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2" id="fileUploadIcon"></i>
+                                <span id="resFileName" class="text-secondary fw-medium">Selecciona o arrastra tus archivos aquí</span>
+                            </div>
+                        </div>
+                        <div class="form-text mt-2 text-muted small d-flex flex-column">
+                            <span><i class="fa-solid fa-file-pdf me-1"></i>PDF, JPG, PNG, WEBP o DOCX. Máximo 5 archivos, 10MB cada uno.</span>
+                            <span class="mt-1"><i class="fa-solid fa-lock me-1"></i>Tus archivos están protegidos bajo almacenamiento seguro.</span>
+                        </div>
                     </div>
                 </div>
 

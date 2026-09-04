@@ -229,7 +229,7 @@ body.dark-mode footer {
 }
 
 /* ==========================================================================
-   REFINAMIENTOS VISUALES (QA)
+   REFINAMIENTOS VISUALES (QA) Y SUBIDA DE ARCHIVOS
    ========================================================================== */
 .modal-custom .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
@@ -263,4 +263,40 @@ body.dark-mode footer {
 
 .card:hover .icon-box {
   transform: scale(1.1);
+}
+
+/* Diseño interactivo Drag & Drop unificado para subir múltiples archivos */
+.file-upload-wrapper {
+  overflow: hidden;
+}
+
+.file-upload-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.file-upload-design {
+  border: 2px dashed rgba(var(--bs-primary-rgb), 0.3) !important;
+  transition: var(--transition-smooth);
+}
+
+.file-upload-wrapper:hover .file-upload-design {
+  border-color: var(--bs-primary) !important;
+  background-color: rgba(var(--bs-primary-rgb), 0.05) !important;
+}
+
+body.dark-mode .file-upload-design {
+  background-color: #1e293b !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .file-upload-wrapper:hover .file-upload-design {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
 }

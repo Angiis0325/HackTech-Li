@@ -13,7 +13,7 @@
  *   resNotes, error-fullName, error-email, error-phone, error-notes,
  *   btnText/btnLoader (spinner del botón de envío, o window.toggleLoadingState)
  * Creados por este archivo en tiempo de ejecución (index.html no los trae):
- *   error-fullName/email/phone/notes/files, y el campo #resFiles completo
+ *   error-fullName/email/phone/notes/files, y el campo #resFile completo
  *   (carga de archivos) justo después de #resPhone.
  *
  * Al confirmar una reserva con éxito, dispara window.dispatchEvent(
@@ -200,11 +200,8 @@ async function onSubmitReservation(event) {
   clearFeedback();
   clearAllFieldErrors();
 
-  // "resNotes" ya no existe en el modal actual (el compañero de la vista
-  // principal lo quitó del diseño); se deja como opcional para no romper
-  // el envío si el campo llegara a faltar.
   const notesEl = document.getElementById('resNotes');
-  const filesEl = document.getElementById('resFiles');
+  const filesEl = document.getElementById('resFile'); // Sincronizado con el ID de la UI
 
   const formData = {
     serviceId: reservationState.selectedServiceId,
@@ -229,8 +226,6 @@ async function onSubmitReservation(event) {
   setSubmitting(true);
 
   try {
-    // Este backend arma/reutiliza el cliente internamente a partir de
-    // fullName/email/phone (no exige un clientId previo).
     const payload = {
       fullName: formData.fullName.trim(),
       email: formData.email.trim(),
@@ -246,10 +241,6 @@ async function onSubmitReservation(event) {
 
     let successMessage = `Reserva confirmada para "${service.name}" el ${formatDateTimeLabel(reservation.start_time)}. Te enviaremos la confirmación por correo.`;
 
-    // La reserva ya quedó creada aunque la subida de archivos falle -no
-    // queremos que un problema con un adjunto le haga perder la cita al
-    // usuario-, así que este paso nunca lanza: solo agrega una nota al
-    // mensaje de éxito si algo sale mal.
     if (filesEl && filesEl.files && filesEl.files.length > 0) {
       try {
         await apiUploadReservationFiles({
@@ -265,8 +256,6 @@ async function onSubmitReservation(event) {
 
     showFeedback('success', successMessage);
     resetSlotSelection();
-    // app.js escucha este evento (window.addEventListener('reservationSuccess', ...))
-    // y se encarga de resetear el formulario y los horarios visibles.
     window.dispatchEvent(new CustomEvent('reservationSuccess', { detail: { reservation, service } }));
   } catch (error) {
     if (error.code === 'VALIDATION_ERROR' && error.details) {
@@ -312,9 +301,6 @@ function describeApiError(error, fallbackMessage) {
 function setSubmitting(isSubmitting) {
   reservationState.submitting = isSubmitting;
 
-  // app.js ahora expone su propio helper para el spinner del botón
-  // (window.toggleLoadingState); lo usamos si existe para no duplicar
-  // lógica. Si no está disponible, hacemos el toggle nosotros mismos.
   if (typeof window.toggleLoadingState === 'function') {
     window.toggleLoadingState(isSubmitting);
     return;
@@ -344,8 +330,6 @@ function showFeedback(type, message) {
   if (!el) return;
   el.textContent = message;
   el.className = `reservation-feedback reservation-feedback-${type}`;
-  // El div arranca con style="display:none" en el HTML; sin esto el
-  // mensaje quedaría siempre invisible aunque la clase cambie.
   el.style.display = 'block';
 }
 
@@ -357,16 +341,12 @@ function clearFeedback() {
   el.style.display = 'none';
 }
 
-// El modal actual solo trae <span id="error-*"> para service/date/time.
-// fullName/email/phone/notes no tienen dónde mostrar su error puntual.
-// En vez de tocar index.html, los creamos por JS la primera vez que
-// hacen falta, justo después del input correspondiente.
 const FIELD_INPUT_IDS = {
   fullName: 'resName',
   email: 'resEmail',
   phone: 'resPhone',
   notes: 'resNotes',
-  files: 'resFiles'
+  files: 'resFile' // Sincronizado con el ID de la UI
 };
 
 function ensureFieldErrorEl(field) {
@@ -384,13 +364,9 @@ function ensureFieldErrorEl(field) {
   return el;
 }
 
-/**
- * Crea el campo "Adjuntar documentos" por JS (índice.html no lo trae, y
- * no lo tocamos). Se inserta justo después del campo de teléfono, dentro
- * del propio <form>, así form.reset() también lo limpia solo.
- */
 function ensureFileInputEl() {
-  if (document.getElementById('resFiles')) return;
+  // Verificamos si ya existe #resFile en el DOM estático para evitar inyecciones
+  if (document.getElementById('resFile')) return;
 
   const phoneField = document.getElementById('resPhone');
   if (!phoneField) return;
@@ -399,9 +375,9 @@ function ensureFileInputEl() {
   const wrapper = document.createElement('div');
   wrapper.className = 'mb-3';
   wrapper.innerHTML = `
-    <label for="resFiles" class="form-label fw-semibold text-dark">Adjuntar documentos (opcional)</label>
-    <input type="file" id="resFiles" name="files" class="form-control shadow-none" multiple
-           accept=".pdf,.jpg,.jpeg,.png,.webp,.docx">
+    <label for="resFile" class="form-label fw-semibold text-dark">Adjuntar documentos (opcional)</label>
+    <input type="file" id="resFile" name="archivos" class="form-control shadow-none" multiple
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.docx">
     <small class="text-secondary d-block mt-1">PDF, JPG, PNG, WEBP o DOCX. Máximo 5 archivos, 10MB cada uno.</small>
     <span class="text-danger small mt-1 d-block" id="error-files"></span>
   `;
