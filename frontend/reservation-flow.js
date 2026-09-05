@@ -4,21 +4,6 @@
  * carga de servicios, disponibilidad por servicio/fecha, selección de
  * horario, validación, carga de archivos adjuntos y envío al backend
  * o a los mocks.
- *
- * Depende de: ReservationConfig.js, mock-data.js, reservation-api.js, validation.js
- * IDs esperados en index.html (dentro de #reservationModal):
- *   resService, resDate, resTimeSlots, resStartTime, resEndTime,
- *   resName, resEmail, resPhone, resFeedback, resSubmitBtn, reservationForm
- * Opcionales (se manejan de forma defensiva si no existen):
- *   resNotes, error-fullName, error-email, error-phone, error-notes,
- *   btnText/btnLoader (spinner del botón de envío, o window.toggleLoadingState)
- * Creados por este archivo en tiempo de ejecución (index.html no los trae):
- *   error-fullName/email/phone/notes/files, y el campo #resFile completo
- *   (carga de archivos) justo después de #resPhone.
- *
- * Al confirmar una reserva con éxito, dispara window.dispatchEvent(
- * 'reservationSuccess') para que app.js limpie el formulario y los
- * horarios visibles (ver resetReservationForm() en app.js).
  */
 
 const reservationState = {
@@ -133,7 +118,15 @@ async function loadAvailability() {
       date: reservationState.selectedDate
     });
 
-    reservationState.availableSlots = (response.data && response.data.slots) || [];
+    const rawSlots = (response.data && response.data.slots) || [];
+
+    // Filtro estricto: Solo permitimos horarios hábiles entre las 8:00 a. m. y las 6:00 p. m. (en UTC del servidor)
+    reservationState.availableSlots = rawSlots.filter(slot => {
+      const slotDate = new Date(slot.startTime);
+      const hour = slotDate.getUTCHours();
+      return hour >= 8 && hour < 18;
+    });
+
     renderTimeSlots(reservationState.availableSlots);
   } catch (error) {
     reservationState.availableSlots = [];
@@ -201,7 +194,7 @@ async function onSubmitReservation(event) {
   clearAllFieldErrors();
 
   const notesEl = document.getElementById('resNotes');
-  const filesEl = document.getElementById('resFile'); // Sincronizado con el ID de la UI
+  const filesEl = document.getElementById('resFile');
 
   const formData = {
     serviceId: reservationState.selectedServiceId,
@@ -346,7 +339,7 @@ const FIELD_INPUT_IDS = {
   email: 'resEmail',
   phone: 'resPhone',
   notes: 'resNotes',
-  files: 'resFile' // Sincronizado con el ID de la UI
+  files: 'resFile'
 };
 
 function ensureFieldErrorEl(field) {
@@ -365,7 +358,6 @@ function ensureFieldErrorEl(field) {
 }
 
 function ensureFileInputEl() {
-  // Verificamos si ya existe #resFile en el DOM estático para evitar inyecciones
   if (document.getElementById('resFile')) return;
 
   const phoneField = document.getElementById('resPhone');
@@ -377,7 +369,7 @@ function ensureFileInputEl() {
   wrapper.innerHTML = `
     <label for="resFile" class="form-label fw-semibold text-dark">Adjuntar documentos (opcional)</label>
     <input type="file" id="resFile" name="archivos" class="form-control shadow-none" multiple
-            accept=".pdf,.jpg,.jpeg,.png,.webp,.docx">
+           accept=".pdf,.jpg,.jpeg,.png,.webp,.docx">
     <small class="text-secondary d-block mt-1">PDF, JPG, PNG, WEBP o DOCX. Máximo 5 archivos, 10MB cada uno.</small>
     <span class="text-danger small mt-1 d-block" id="error-files"></span>
   `;
@@ -411,12 +403,13 @@ function todayAsInputValue() {
 
 function formatTimeLabel(isoString) {
   const date = new Date(isoString);
-  return date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return date.toLocaleTimeString('es-CO', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 function formatDateTimeLabel(isoString) {
   const date = new Date(isoString);
   return date.toLocaleString('es-CO', {
+    timeZone: 'UTC',
     day: '2-digit',
     month: 'long',
     hour: '2-digit',

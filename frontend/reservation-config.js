@@ -10,14 +10,13 @@
  *   SIN backend corriendo, usando frontend/js/mock-data.js.
  *   Cuando el backend esté desplegado/corriendo, cambiar a false.
  */
-
 const RESERVATION_CONFIG = {
-  // Backend local por defecto según src/config/env.js (PORT=4000) y app.js (prefijo /api)
-  API_BASE_URL: 'http://localhost:4000/api',
-
+  // Ruta relativa: funciona tanto en local (si sirves el frontend
+  // desde el mismo backend) como en producción en Render, sin
+  // importar el dominio.
+  API_BASE_URL: '/api',
   // true = usar datos ficticios (mock-data.js). false = pegarle al backend real.
   USE_MOCK: false,
-
   // Valores por defecto para la consulta de disponibilidad
   // (coinciden con los defaults del backend en reservation.controller.js -> getAvailability)
   DEFAULT_SLOT_MINUTES: 30,

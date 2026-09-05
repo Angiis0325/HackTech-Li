@@ -185,12 +185,28 @@
         </section>
     </main>
 
-    <!-- Footer -->
+    <!-- Footer con disparador secreto de 3 clics para Admin -->
     <footer class="bg-dark text-white py-4 text-center">
         <div class="container">
-            <p class="mb-0 small text-secondary">&copy; 2026 La Fisioterapeuta Li. Todos los derechos reservados.</p>
+            <p id="secretAdminTrigger" class="mb-0 small text-secondary" style="cursor: pointer; user-select: none;" title="Portal">&copy; 2026 La Fisioterapeuta Li. Todos los derechos reservados.</p>
         </div>
     </footer>
+
+    <!-- Script para detectar el clic triple secreto -->
+    <script>
+        let clickCount = 0;
+        let clickTimer = null;
+        document.getElementById('secretAdminTrigger').addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => { clickCount = 0; }, 600);
+            } else if (clickCount === 3) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                window.location.href = 'admin.html';
+            }
+        });
+    </script>
 
     <!-- Modal de Reserva con diseño App-Like -->
     <div class="modal-backdrop-custom" id="modalBackdrop" onclick="closeReservationModal(event)">
@@ -287,7 +303,7 @@
                 </div>
 
                 <div class="p-4 border-top d-flex justify-content-end gap-2 bg-light" id="formFooter">
-                    <button type="button" class="btn btn-outline-secondary px-3 rounded-pill shadow-none" onclick="closeReservationModal()">Cancelar</button>
+                    <button type="button" class="btn btn-outline-secondary px-3 rounded-pill shadow-none" onclick="closeReservationModal()">Cancelar horario</button>
                     <!-- Spinner de carga para la integración -->
                     <button type="submit" class="btn btn-primary px-4 rounded-pill d-flex align-items-center shadow-sm hover-lift" id="resSubmitBtn">
                         <span id="btnText">Confirmar Reserva</span>

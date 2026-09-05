@@ -1,3 +1,4 @@
+// reservation-api.js
 
 async function apiGetServices() {
   if (RESERVATION_CONFIG.USE_MOCK) {
@@ -19,8 +20,8 @@ async function apiGetAvailability({ serviceId, date }) {
     return { data: buildMockAvailability({ serviceId, date }) };
   }
 
-  const from = `${date}T00:00:00.000Z`;
-  const to = `${date}T23:59:59.000Z`;
+  const from = `${date}T00:00:00Z`;
+  const to = `${date}T23:59:59Z`;
   const params = new URLSearchParams({ from, to, serviceId: String(serviceId) });
 
   try {
@@ -42,8 +43,6 @@ async function apiCreateReservation(payload) {
   if (RESERVATION_CONFIG.USE_MOCK) {
     await mockDelay();
 
-    // Fidelidad con el backend real: src/controllers/reservation.controller.js
-    // responde 404 SERVICE_NOT_FOUND si el servicio no existe o no está activo.
     const serviceExists = MOCK_SERVICES.some(
       (s) => s.id === Number(payload.serviceId) && s.is_active
     );
@@ -102,8 +101,6 @@ async function apiUploadReservationFiles({ reservationId, email, files }) {
   Array.from(files).forEach((file) => formData.append('files', file));
 
   try {
-    // Sin header Content-Type manual: el navegador arma el
-    // multipart/form-data con el boundary correcto por sí solo.
     const res = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/files/public`, {
       method: 'POST',
       body: formData

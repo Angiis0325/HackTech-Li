@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-
+const path = require("path");
 const env = require("./config/env");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
@@ -16,20 +16,24 @@ const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "'unsafe-inline'"],
+      fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "data:"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"]
+    }
+  }
+}));
 app.use(cors({ origin: env.corsOrigin === "*" ? true : env.corsOrigin }));
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
 
-app.get("/", (req, res) => {
-	res.json({
-		data: {
-			name: "HackTech Li Backend",
-			status: "running",
-			docs: "/api"
-		}
-	});
-});
+app.use(express.static(path.join(__dirname, "..", "..", "frontend")));
 
 app.get("/api", (req, res) => {
 	res.json({
