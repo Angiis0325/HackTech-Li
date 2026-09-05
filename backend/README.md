@@ -115,6 +115,19 @@ antes de iniciar `nodemon`, para evitar errores `EADDRINUSE`.
 - `PATCH /api/reservations/:id/status` (auth)
 - `PATCH /api/integrations/n8n/reservations/:id/status` (token)
 - `GET /api/audit-logs` (auth)
+- `POST /api/files/public` (multipart, cliente)
+- `POST /api/files/reservations/:reservationId` (multipart, auth; historia clínica)
+- `GET /api/files/reservations/:reservationId` (auth)
+- `GET /api/files/:id/download` (auth)
+
+## Carga de archivos
+
+Los archivos se guardan fuera de una carpeta pública y sus metadatos quedan en la tabla `files`.
+Ejecuta `npm run migrate` para crearla. Los límites por defecto son 10 MB por archivo y 5 archivos por petición; se configuran con `MAX_FILE_SIZE_BYTES` y `MAX_FILES_PER_REQUEST`.
+
+Para el cliente, usa `POST /api/files/public` como `multipart/form-data` y envía los campos `reservationId`, `email` y uno o más campos `files`. El correo debe coincidir con el correo de la reserva.
+
+Para el personal clínico, usa `POST /api/files/reservations/:reservationId` con `Authorization: Bearer <token>`, uno o más campos `files` y el campo opcional `category`: `medical_history` (por defecto) o `client_attachment`. Los roles `doctor`, `staff` y `admin` tienen acceso a este apartado. Los tipos aceptados son PDF, JPG, PNG, WEBP y DOCX.
 
 ## Disponibilidad para frontend
 

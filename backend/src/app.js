@@ -10,6 +10,7 @@ const serviceRoutes = require("./routes/service.routes");
 const reservationRoutes = require("./routes/reservation.routes");
 const integrationRoutes = require("./routes/integration.routes");
 const auditRoutes = require("./routes/audit.routes");
+const fileRoutes = require("./routes/file.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -46,6 +47,10 @@ app.get("/api", (req, res) => {
 				"GET /api/reservations/:id (auth)",
 				"PATCH /api/reservations/:id/status (auth)",
 				"PATCH /api/reservations/:id/reschedule (auth)",
+				"POST /api/files/public (multipart, client attachments)",
+				"POST /api/files/reservations/:reservationId (auth, medical history)",
+				"GET /api/files/reservations/:reservationId (auth)",
+				"GET /api/files/:id/download (auth)",
 				"PATCH /api/integrations/n8n/reservations/:id/status (token)",
 				"GET /api/audit-logs (auth)"
 			]
@@ -59,6 +64,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/integrations", integrationRoutes);
 app.use("/api/audit-logs", auditRoutes);
+app.use("/api/files", fileRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

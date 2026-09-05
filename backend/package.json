@@ -9,7 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "test": "node --test --test-concurrency=1 tests/smoke.api.test.js",
     "test:smoke": "node --test --test-concurrency=1 tests/smoke.api.test.js",
-    "seed":"node scripts/seed.js"
+    "seed": "node scripts/seed.js"
   },
   "keywords": [
     "express",
@@ -27,6 +27,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "multer": "^2.3.0",
     "pg": "^8.12.0",
     "zod": "^3.23.8"
   },

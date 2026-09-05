@@ -2,12 +2,23 @@
  * reservation-flow.js
  * Maneja el flujo completo del formulario de reserva del modal:
  * carga de servicios, disponibilidad por servicio/fecha, selección de
- * horario, validación y envío al backend o a los mocks.
+ * horario, validación, carga de archivos adjuntos y envío al backend
+ * o a los mocks.
  *
  * Depende de: ReservationConfig.js, mock-data.js, reservation-api.js, validation.js
  * IDs esperados en index.html (dentro de #reservationModal):
  *   resService, resDate, resTimeSlots, resStartTime, resEndTime,
- *   resName, resEmail, resPhone, resNotes, resFeedback, reservationForm
+ *   resName, resEmail, resPhone, resFeedback, resSubmitBtn, reservationForm
+ * Opcionales (se manejan de forma defensiva si no existen):
+ *   resNotes, error-fullName, error-email, error-phone, error-notes,
+ *   btnText/btnLoader (spinner del botón de envío, o window.toggleLoadingState)
+ * Creados por este archivo en tiempo de ejecución (index.html no los trae):
+ *   error-fullName/email/phone/notes/files, y el campo #resFile completo
+ *   (carga de archivos) justo después de #resPhone.
+ *
+ * Al confirmar una reserva con éxito, dispara window.dispatchEvent(
+ * 'reservationSuccess') para que app.js limpie el formulario y los
+ * horarios visibles (ver resetReservationForm() en app.js).
  */
 
 const reservationState = {
@@ -41,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', onSubmitReservation);
   }
 
+  ensureFileInputEl();
   loadServices();
 });
 
@@ -188,6 +200,9 @@ async function onSubmitReservation(event) {
   clearFeedback();
   clearAllFieldErrors();
 
+  const notesEl = document.getElementById('resNotes');
+  const filesEl = document.getElementById('resFile'); // Sincronizado con el ID de la UI
+
   const formData = {
     serviceId: reservationState.selectedServiceId,
     date: reservationState.selectedDate,
@@ -195,38 +210,53 @@ async function onSubmitReservation(event) {
     fullName: document.getElementById('resName').value,
     email: document.getElementById('resEmail').value,
     phone: document.getElementById('resPhone').value,
-    notes: document.getElementById('resNotes').value
+    notes: notesEl ? notesEl.value : ''
   };
 
   const { isValid, errors } = validateReservationForm(formData);
-  if (!isValid) {
-    showFieldErrors(errors);
+  const filesResult = validateFiles(filesEl ? filesEl.files : null);
+  const allErrors = { ...errors, ...filesResult.errors };
+
+  if (!isValid || !filesResult.isValid) {
+    showFieldErrors(allErrors);
     showFeedback('error', 'Revisa los campos marcados antes de continuar.');
     return;
   }
 
-  const payload = {
-    fullName: formData.fullName.trim(),
-    email: formData.email.trim(),
-    phone: formData.phone.trim(),
-    serviceId: Number(formData.serviceId),
-    startTime: reservationState.selectedSlot.startTime,
-    endTime: reservationState.selectedSlot.endTime,
-    notes: formData.notes ? formData.notes.trim() : undefined
-  };
-
   setSubmitting(true);
 
   try {
+    const payload = {
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      serviceId: Number(formData.serviceId),
+      startTime: reservationState.selectedSlot.startTime,
+      endTime: reservationState.selectedSlot.endTime,
+      notes: formData.notes ? formData.notes.trim() : undefined
+    };
+
     const response = await apiCreateReservation(payload);
     const { reservation, service } = response.data;
-    showFeedback(
-      'success',
-      `Reserva confirmada para "${service.name}" el ${formatDateTimeLabel(reservation.start_time)}. Te enviaremos la confirmación por correo.`
-    );
-    document.getElementById('reservationForm').reset();
+
+    let successMessage = `Reserva confirmada para "${service.name}" el ${formatDateTimeLabel(reservation.start_time)}. Te enviaremos la confirmación por correo.`;
+
+    if (filesEl && filesEl.files && filesEl.files.length > 0) {
+      try {
+        await apiUploadReservationFiles({
+          reservationId: reservation.id,
+          email: payload.email,
+          files: filesEl.files
+        });
+        successMessage += ' Tus archivos adjuntos se subieron correctamente.';
+      } catch (uploadError) {
+        successMessage += ` Sin embargo, no se pudieron subir los archivos adjuntos (${describeApiError(uploadError, 'error desconocido')}). Puedes intentar reenviarlos más tarde.`;
+      }
+    }
+
+    showFeedback('success', successMessage);
     resetSlotSelection();
-    renderSlotsHint('Selecciona un servicio y una fecha para ver horarios.');
+    window.dispatchEvent(new CustomEvent('reservationSuccess', { detail: { reservation, service } }));
   } catch (error) {
     if (error.code === 'VALIDATION_ERROR' && error.details) {
       showFeedback('error', 'El backend rechazó algunos datos del formulario. Revisa la información.');
@@ -249,7 +279,12 @@ function describeApiError(error, fallbackMessage) {
     SERVICE_NOT_FOUND: 'El servicio seleccionado ya no existe o no está activo.',
     INVALID_TIME_RANGE: 'El rango de horario seleccionado no es válido.',
     RANGE_TOO_LARGE: 'El rango de fechas consultado es demasiado amplio.',
-    VALIDATION_ERROR: 'Alguno de los datos ingresados no es válido.'
+    VALIDATION_ERROR: 'Alguno de los datos ingresados no es válido.',
+    UNSUPPORTED_FILE_TYPE: 'Uno de los archivos no tiene un formato permitido.',
+    INVALID_FILE_UPLOAD: 'Faltan datos para subir el archivo.',
+    FILE_UPLOAD_LIMIT_EXCEEDED: 'Uno de los archivos excede el límite permitido.',
+    RESERVATION_NOT_FOUND: 'No se encontró la reserva para adjuntar el archivo.',
+    EMAIL_MISMATCH: 'El correo no coincide con el de la reserva.'
   };
 
   if (error && error.code && knownMessages[error.code]) {
@@ -265,9 +300,23 @@ function describeApiError(error, fallbackMessage) {
 
 function setSubmitting(isSubmitting) {
   reservationState.submitting = isSubmitting;
+
+  if (typeof window.toggleLoadingState === 'function') {
+    window.toggleLoadingState(isSubmitting);
+    return;
+  }
+
   const btn = document.getElementById('resSubmitBtn');
-  if (btn) {
-    btn.disabled = isSubmitting;
+  if (!btn) return;
+
+  btn.disabled = isSubmitting;
+
+  const btnText = document.getElementById('btnText');
+  const btnLoader = document.getElementById('btnLoader');
+  if (btnText && btnLoader) {
+    btnText.textContent = isSubmitting ? 'Enviando...' : 'Confirmar Reserva';
+    btnLoader.classList.toggle('d-none', !isSubmitting);
+  } else {
     btn.textContent = isSubmitting ? 'Enviando...' : 'Confirmar Reserva';
   }
 }
@@ -281,6 +330,7 @@ function showFeedback(type, message) {
   if (!el) return;
   el.textContent = message;
   el.className = `reservation-feedback reservation-feedback-${type}`;
+  el.style.display = 'block';
 }
 
 function clearFeedback() {
@@ -288,11 +338,56 @@ function clearFeedback() {
   if (!el) return;
   el.textContent = '';
   el.className = 'reservation-feedback';
+  el.style.display = 'none';
+}
+
+const FIELD_INPUT_IDS = {
+  fullName: 'resName',
+  email: 'resEmail',
+  phone: 'resPhone',
+  notes: 'resNotes',
+  files: 'resFile' // Sincronizado con el ID de la UI
+};
+
+function ensureFieldErrorEl(field) {
+  let el = document.getElementById(`error-${field}`);
+  if (el) return el;
+
+  const inputId = FIELD_INPUT_IDS[field];
+  const input = inputId ? document.getElementById(inputId) : null;
+  if (!input) return null;
+
+  el = document.createElement('span');
+  el.id = `error-${field}`;
+  el.className = 'text-danger small mt-1 d-block';
+  input.insertAdjacentElement('afterend', el);
+  return el;
+}
+
+function ensureFileInputEl() {
+  // Verificamos si ya existe #resFile en el DOM estático para evitar inyecciones
+  if (document.getElementById('resFile')) return;
+
+  const phoneField = document.getElementById('resPhone');
+  if (!phoneField) return;
+  const phoneGroup = phoneField.closest('.mb-3') || phoneField;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'mb-3';
+  wrapper.innerHTML = `
+    <label for="resFile" class="form-label fw-semibold text-dark">Adjuntar documentos (opcional)</label>
+    <input type="file" id="resFile" name="archivos" class="form-control shadow-none" multiple
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.docx">
+    <small class="text-secondary d-block mt-1">PDF, JPG, PNG, WEBP o DOCX. Máximo 5 archivos, 10MB cada uno.</small>
+    <span class="text-danger small mt-1 d-block" id="error-files"></span>
+  `;
+
+  phoneGroup.insertAdjacentElement('afterend', wrapper);
 }
 
 function showFieldErrors(errors) {
   Object.entries(errors).forEach(([field, message]) => {
-    const el = document.getElementById(`error-${field}`);
+    const el = document.getElementById(`error-${field}`) || ensureFieldErrorEl(field);
     if (el) el.textContent = message;
   });
 }
@@ -303,7 +398,7 @@ function clearFieldError(field) {
 }
 
 function clearAllFieldErrors() {
-  ['service', 'date', 'time', 'fullName', 'email', 'phone', 'notes'].forEach(clearFieldError);
+  ['service', 'date', 'time', 'fullName', 'email', 'phone', 'notes', 'files'].forEach(clearFieldError);
 }
 
 function todayAsInputValue() {

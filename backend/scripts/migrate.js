@@ -5,7 +5,8 @@ const env = require("../src/config/env");
 
 const migrations = [
   path.resolve(__dirname, "..", "..", "database", "001_init_backend.sql"),
-  path.resolve(__dirname, "..", "..", "database", "002_audit_and_integrations.sql")
+  path.resolve(__dirname, "..", "..", "database", "002_audit_and_integrations.sql"),
+  path.resolve(__dirname, "..", "..", "database", "003_files.sql")
 ];
 
 async function runMigration(client, migrationPath) {

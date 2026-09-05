@@ -16,7 +16,7 @@ const RESERVATION_CONFIG = {
   API_BASE_URL: 'http://localhost:4000/api',
 
   // true = usar datos ficticios (mock-data.js). false = pegarle al backend real.
-  USE_MOCK: true,
+  USE_MOCK: false,
 
   // Valores por defecto para la consulta de disponibilidad
   // (coinciden con los defaults del backend en reservation.controller.js -> getAvailability)

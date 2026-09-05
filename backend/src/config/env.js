@@ -1,4 +1,5 @@
 const dotenv = require("dotenv");
+const path = require("path");
 
 dotenv.config();
 
@@ -18,7 +19,10 @@ const env = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1d",
   corsOrigin: process.env.CORS_ORIGIN || "*",
   adminInviteCode: process.env.ADMIN_INVITE_CODE || "",
-  n8nWebhookToken: process.env.N8N_WEBHOOK_TOKEN || ""
+  n8nWebhookToken: process.env.N8N_WEBHOOK_TOKEN || "",
+  uploadDir: path.resolve(process.env.UPLOAD_DIR || path.join(process.cwd(), "storage", "private")),
+  maxFileSizeBytes: Number(process.env.MAX_FILE_SIZE_BYTES || 10 * 1024 * 1024),
+  maxFilesPerRequest: Number(process.env.MAX_FILES_PER_REQUEST || 5)
 };
 
 module.exports = env;

@@ -78,6 +78,8 @@ function buildMockAvailability({ serviceId, date }) {
 
 /**
  * Replica la respuesta 201 de POST /api/reservations/public -> { data: {...} }
+ * Este backend arma el cliente internamente (upsertClient) a partir de
+ * fullName/email/phone recibidos directo en el body -no hay clientId-.
  */
 function buildMockReservationSuccess(payload) {
   const service = MOCK_SERVICES.find((s) => s.id === Number(payload.serviceId));
@@ -105,4 +107,19 @@ function buildMockReservationSuccess(payload) {
       }
     }
   };
+}
+
+/**
+ * Replica la respuesta 201 de POST /api/files/public -> { data: [...] }
+ * (ver backend/src/controllers/file.controller.js: serializeFile).
+ */
+function buildMockFileUploadSuccess(files) {
+  return Array.from(files).map((file, index) => ({
+    id: Math.floor(Math.random() * 100000) + index,
+    original_name: file.name,
+    mime_type: file.type,
+    size_bytes: file.size,
+    category: 'client_attachment',
+    downloadUrl: `#mock-download-${file.name}`
+  }));
 }
