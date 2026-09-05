@@ -14,11 +14,11 @@
  *
  * Uso:
  *   node reservation.tests.js            -> corre contra mock-data.js
- *                                            (no necesita el backend corriendo)
+ *                                           (no necesita el backend corriendo)
  *   node reservation.tests.js --real     -> corre contra el backend real en
- *                                            RESERVATION_CONFIG.API_BASE_URL
- *                                            (correr antes: npm run dev, con
- *                                            la base de datos ya migrada/con seed)
+ *                                           RESERVATION_CONFIG.API_BASE_URL
+ *                                           (correr antes: npm run dev, con
+ *                                           la base de datos ya migrada/con seed)
  */
 'use strict';
 
@@ -78,10 +78,10 @@ let failed = 0;
 async function test(name, fn) {
   try {
     await fn();
-    console.log(`  \u2714 ${name}`);
+    console.log(`   ✔ ${name}`);
     passed += 1;
   } catch (error) {
-    console.log(`  \u2718 ${name}`);
+    console.log(`   ✘ ${name}`);
     console.log(`     ${error.message}`);
     failed += 1;
   }
@@ -226,12 +226,28 @@ async function run() {
 
   console.log('\nGET /services');
   let services = [];
+  let backendOnline = true;
+
   await test('carga la lista de servicios activos', async () => {
-    const response = await context.apiGetServices();
-    assert.ok(Array.isArray(response.data));
-    assert.ok(response.data.length > 0, 'se esperaba al menos un servicio activo');
-    services = response.data;
+    try {
+      const response = await context.apiGetServices();
+      assert.ok(Array.isArray(response.data));
+      assert.ok(response.data.length > 0, 'se esperaba al menos un servicio activo');
+      services = response.data;
+    } catch (error) {
+      backendOnline = false;
+      throw error;
+    }
   });
+
+  // Si el backend está apagado en modo --real, detenemos las pruebas de red
+  // aquí de forma limpia para evitar errores en cadena (Cannot read properties of undefined).
+  if (!backendOnline && useReal) {
+    console.log('\n  [!] El servidor backend no está encendido. Enciende el backend con "npm run dev" para ejecutar las pruebas de red.');
+    console.log(`\n${passed} pasaron, ${failed} fallaron.\n`);
+    process.exitCode = 1;
+    return;
+  }
 
   console.log('\nGET /reservations/availability');
   let slots = [];
