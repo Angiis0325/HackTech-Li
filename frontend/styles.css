@@ -70,6 +70,20 @@ body.dark-mode footer {
   background-color: #090d16 !important;
 }
 
+/* Fix específico de visibilidad de texto en Modo Oscuro (Upload file) */
+body.dark-mode .text-muted,
+body.dark-mode .form-text {
+  color: #94a3b8 !important;
+}
+
+body.dark-mode #resFileName {
+  color: #cbd5e1 !important;
+}
+
+body.dark-mode #resFileName.text-success {
+  color: #4ade80 !important; /* Verde claro visible en fondo oscuro */
+}
+
 /* Micro-interacciones y Animaciones de Portafolio */
 .hover-lift {
   transition: var(--transition-smooth);

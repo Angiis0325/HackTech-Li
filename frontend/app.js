@@ -6,10 +6,39 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Escuchar el evento de éxito emitido por la lógica de integración
     window.addEventListener('reservationSuccess', () => {
+        const formScrollContainer = document.getElementById('formScrollContainer');
+        const formFooter = document.getElementById('formFooter');
+        const feedback = document.getElementById('resFeedback');
+
+        if (formScrollContainer) {
+            formScrollContainer.scrollTop = 0; // Desplazar arriba
+
+            // Ocultar campos temporalmente para mostrar solo el mensaje de éxito
+            Array.from(formScrollContainer.children).forEach(child => {
+                if (child.id !== 'resFeedback' && child.tagName !== 'SCRIPT') {
+                    child.style.display = 'none';
+                }
+            });
+
+            // Centrar el feedback
+            formScrollContainer.classList.add('d-flex', 'flex-column', 'align-items-center', 'justify-content-center');
+            
+            if (feedback) {
+                feedback.classList.add('text-center', 'p-4', 'fs-5');
+                feedback.innerHTML = '<i class="fa-solid fa-circle-check d-block text-success mb-3" style="font-size: 4rem;"></i>' + feedback.innerHTML;
+            }
+        }
+
+        if (formFooter) formFooter.style.display = 'none'; // Ocultar botones
+
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) modalTitle.innerHTML = '<i class="fa-solid fa-check-double me-2 text-success"></i> ¡Completado!';
+
+        // Cerrar modal automáticamente y luego limpiarlo
         setTimeout(() => {
             closeReservationModal();
-            resetReservationForm();
-        }, 2500);
+            setTimeout(resetReservationForm, 300); // Restablecer interfaz silenciosamente
+        }, 3500);
     });
 
     // Intersection Observer para animaciones SPA
@@ -62,18 +91,15 @@ function setupFileUploadListener() {
             const filesCount = this.files.length;
             if (filesCount === 1) {
                 resFileName.innerHTML = `<strong>${this.files[0].name}</strong> listo para enviar`;
-                resFileName.classList.remove('text-secondary');
-                resFileName.classList.add('text-success');
+                resFileName.className = 'fw-medium text-success';
                 fileUploadIcon.className = 'fa-solid fa-file-circle-check fs-2 text-success mb-2';
             } else if (filesCount > 1) {
                 resFileName.innerHTML = `<strong>${filesCount} archivos</strong> seleccionados listos para enviar`;
-                resFileName.classList.remove('text-secondary');
-                resFileName.classList.add('text-success');
+                resFileName.className = 'fw-medium text-success';
                 fileUploadIcon.className = 'fa-solid fa-file-circle-check fs-2 text-success mb-2';
             } else {
                 resFileName.innerHTML = `Selecciona o arrastra tus archivos aquí`;
-                resFileName.classList.add('text-secondary');
-                resFileName.classList.remove('text-success');
+                resFileName.className = 'fw-medium text-secondary';
                 fileUploadIcon.className = 'fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2';
             }
         });
@@ -110,7 +136,7 @@ function openReservationModal(serviceName = null) {
         document.body.style.overflow = 'hidden';
     }
 
-    // Limpiamos cualquier elemento duplicado que haya metido el script de Juan Sebastián
+    // Limpiamos cualquier elemento duplicado que haya metido el script
     setTimeout(sanitizeDuplicateInputs, 50);
 
     if (typeof window.onReservationModalOpen === 'function') {
@@ -137,7 +163,7 @@ function closeReservationModal(event = null) {
     }
 }
 
-/* Limpieza de la Interfaz */
+/* Limpieza y Restauración de la Interfaz */
 function resetReservationForm() {
     const form = document.getElementById('reservationForm');
     if (form) form.reset();
@@ -151,10 +177,31 @@ function resetReservationForm() {
     const fileUploadIcon = document.getElementById('fileUploadIcon');
     if (resFileName && fileUploadIcon) {
         resFileName.innerHTML = `Selecciona o arrastra tus archivos aquí`;
-        resFileName.classList.add('text-secondary');
-        resFileName.classList.remove('text-success');
+        resFileName.className = 'text-secondary fw-medium';
         fileUploadIcon.className = 'fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2';
     }
+
+    // Restaurar los campos y estilos tras una pantalla de éxito
+    const formScrollContainer = document.getElementById('formScrollContainer');
+    const formFooter = document.getElementById('formFooter');
+    const feedback = document.getElementById('resFeedback');
+
+    if (formScrollContainer) {
+        Array.from(formScrollContainer.children).forEach(child => {
+            child.style.display = ''; // Hacer visibles los campos de nuevo
+        });
+        formScrollContainer.classList.remove('d-flex', 'flex-column', 'align-items-center', 'justify-content-center');
+    }
+
+    if (formFooter) formFooter.style.display = '';
+
+    if (feedback) {
+        feedback.style.display = 'none';
+        feedback.className = 'reservation-feedback mb-3';
+    }
+
+    const modalTitle = document.getElementById('modalTitle');
+    if (modalTitle) modalTitle.innerHTML = '<i class="fa-regular fa-calendar-plus me-2"></i> Agendar Cita';
 }
 
 /* Control Visual del Botón de Carga (Spinner) */
