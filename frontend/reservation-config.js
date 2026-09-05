@@ -11,9 +11,7 @@
  *   Cuando el backend esté desplegado/corriendo, cambiar a false.
  */
 const RESERVATION_CONFIG = {
-    // Si estamos en Node.js (pruebas CLI), usa localhost con el puerto del backend.
-    // Si estamos en el navegador (producción/cliente), usa la ruta relativa limpia '/api'.
-    API_BASE_URL: (typeof window !== 'undefined') ? '/api' : 'http://localhost:3000/api',
+    API_BASE_URL: (typeof window !== 'undefined') ? '/api' : 'http://localhost:4000/api',
     USE_MOCK: false,
     DEFAULT_SLOT_MINUTES: 30,
     DEFAULT_DAY_START_HOUR: 8,
