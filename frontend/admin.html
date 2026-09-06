@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - La Fisioterapeuta Li</title>
+    <!-- Ícono de la pestaña (Favicon) -->
+    <link rel="icon" type="image/png" href="logo.png">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Iconos de FontAwesome -->
@@ -30,6 +32,11 @@
                 </div>
                 <div id="loginError" class="text-danger small mb-3" style="display: none;"></div>
                 <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm hover-lift" id="adminLoginBtn">Ingresar al Panel</button>
+                
+                <!-- BOTÓN PARA VOLVER AL INDEX CORREGIDO PARA MODO OSCURO -->
+                <a href="index.html" class="btn btn-outline-secondary w-100 rounded-pill py-2 mt-2 shadow-sm hover-lift">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Volver al Inicio
+                </a>
             </form>
         </div>
     </div>
@@ -59,6 +66,10 @@
                 <p class="text-secondary small mb-0">Control de pacientes, servicios y documentos adjuntos en tiempo real.</p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
+                <!-- NUEVO BOTÓN PARA VOLVER AL INICIO DESDE EL DASHBOARD -->
+                <a href="index.html" class="btn btn-outline-secondary rounded-pill px-3 shadow-sm hover-lift">
+                    <i class="fa-solid fa-arrow-left me-2"></i> Volver al Inicio
+                </a>
                 <button class="btn btn-outline-success rounded-pill px-3 shadow-sm hover-lift" onclick="exportReservationsCSV()">
                     <i class="fa-solid fa-download me-2"></i> Descargar CSV
                 </button>
