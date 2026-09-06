@@ -11,7 +11,11 @@
  *   Cuando el backend esté desplegado/corriendo, cambiar a false.
  */
 const RESERVATION_CONFIG = {
-    API_BASE_URL: (typeof window !== 'undefined') ? '/api' : 'http://localhost:4000/api',
+    // Si estamos en un entorno de producción con un dominio real, usa '/api'.
+    // Para cualquier prueba local (localhost, 127.0.0.1, archivos locales o terminal), apunta directamente al puerto 4000.
+    API_BASE_URL: (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.protocol !== 'file:')
+        ? '/api'
+        : 'http://localhost:4000/api',
     USE_MOCK: false,
     DEFAULT_SLOT_MINUTES: 30,
     DEFAULT_DAY_START_HOUR: 8,
