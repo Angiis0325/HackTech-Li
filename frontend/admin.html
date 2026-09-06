@@ -25,11 +25,15 @@
             </div>
             <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
                 <div class="mb-3">
+                    <label for="adminEmail" class="form-label fw-semibold text-dark small">Correo</label>
+                    <input type="email" id="adminEmail" class="form-control shadow-none" placeholder="admin@fisioterapeutali.com" required>
+                </div>
+                <div class="mb-3">
                     <label for="adminPassword" class="form-label fw-semibold text-dark small">Contraseña</label>
                     <input type="password" id="adminPassword" class="form-control shadow-none" placeholder="••••••••••••" required>
                 </div>
                 <div id="loginError" class="text-danger small mb-3" style="display: none;"></div>
-                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm hover-lift">Ingresar al Panel</button>
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm hover-lift" id="adminLoginBtn">Ingresar al Panel</button>
             </form>
         </div>
     </div>
@@ -82,12 +86,13 @@
                                 <th class="py-3">Fecha y Hora</th>
                                 <th class="py-3">Teléfono</th>
                                 <th class="py-3">Documentos</th>
+                                <th class="py-3">Estado</th>
                                 <th class="py-3 text-center pe-4">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="adminTableBody">
                             <tr>
-                                <td colspan="6" class="text-center text-secondary py-5">
+                                <td colspan="7" class="text-center text-secondary py-5">
                                     <div class="spinner-border spinner-border-sm text-primary me-2"></div>Cargando reservas...
                                 </td>
                             </tr>
