@@ -29,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (formFooter) formFooter.style.display = 'none'; // Ocultar botones
+        if (formFooter) {
+            formFooter.classList.remove('d-flex');
+            formFooter.classList.add('d-none');
+        } // Ocultar botones (con !important de Bootstrap, style.display no bastaba)
 
         const modalTitle = document.getElementById('modalTitle');
         if (modalTitle) modalTitle.innerHTML = '<i class="fa-solid fa-check-double me-2 text-success"></i> ¡Completado!';
@@ -193,7 +196,10 @@ function resetReservationForm() {
         formScrollContainer.classList.remove('d-flex', 'flex-column', 'align-items-center', 'justify-content-center');
     }
 
-    if (formFooter) formFooter.style.display = '';
+    if (formFooter) {
+        formFooter.classList.remove('d-none');
+        formFooter.classList.add('d-flex');
+    }
 
     if (feedback) {
         feedback.style.display = 'none';

@@ -324,6 +324,17 @@ function showFeedback(type, message) {
   el.textContent = message;
   el.className = `reservation-feedback reservation-feedback-${type}`;
   el.style.display = 'block';
+
+  // Respaldo directo: app.js ya oculta #formFooter al escuchar
+  // 'reservationSuccess', pero lo hacemos también aquí mismo -sin
+  // depender de que ese evento llegue a tiempo- para garantizar que los
+  // botones de Cancelar/Confirmar no queden visibles junto al mensaje
+  // de éxito.
+  const footer = document.getElementById('formFooter');
+  if (footer && type === 'success') {
+    footer.classList.remove('d-flex');
+    footer.classList.add('d-none');
+  }
 }
 
 function clearFeedback() {
@@ -332,6 +343,14 @@ function clearFeedback() {
   el.textContent = '';
   el.className = 'reservation-feedback';
   el.style.display = 'none';
+
+  // Vuelve a mostrar los botones para un nuevo intento (se llama al
+  // abrir el modal y al inicio de cada envío).
+  const footer = document.getElementById('formFooter');
+  if (footer) {
+    footer.classList.remove('d-none');
+    footer.classList.add('d-flex');
+  }
 }
 
 const FIELD_INPUT_IDS = {

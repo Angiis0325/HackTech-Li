@@ -16,6 +16,14 @@
 
 const ADMIN_TOKEN_KEY = 'fisio_admin_token';
 
+// El backend exige correo + contraseña (no admite solo contraseña), así
+// que para mantener el login de un único campo se usa siempre este
+// correo fijo -el del usuario admin creado por npm run seed- por
+// detrás. La contraseña real sigue siendo la que tenga esa cuenta en la
+// base de datos (ver nota importante: el backend exige mínimo 8
+// caracteres, así que "1234" tal cual no es válido).
+const ADMIN_EMAIL = 'admin@fisioterapeutali.com';
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
 });
@@ -42,7 +50,6 @@ function checkAdminAuth() {
 async function handleAdminLogin(event) {
     event.preventDefault();
 
-    const email = document.getElementById('adminEmail').value.trim();
     const password = document.getElementById('adminPassword').value;
     const errorDiv = document.getElementById('loginError');
     const submitBtn = document.getElementById('adminLoginBtn');
@@ -54,7 +61,7 @@ async function handleAdminLogin(event) {
         const res = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email: ADMIN_EMAIL, password })
         });
 
         const json = await res.json().catch(() => null);
@@ -128,12 +135,47 @@ async function loadAdminReservations() {
         }
 
         const result = await response.json();
-        cachedReservations = result.data || [];
+        // El backend no aplica ningún ORDER BY (ver listReservations en
+        // reservation.repository.js), así que Postgres puede devolverlas
+        // en cualquier orden. Se ordenan aquí por fecha de creación, de
+        // la reserva más reciente a la más antigua.
+        cachedReservations = (result.data || []).sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
 
         if (cachedReservations.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center text-secondary py-5">No hay reservas registradas en el sistema.</td></tr>`;
             return;
         }
+
+        // El listado de reservas no trae los archivos adjuntos (la consulta
+        // no los incluye) -por eso nunca aparecían, aunque sí se hubieran
+        // subido-. Sí existe un endpoint por reserva
+        // (GET /api/files/reservations/:id), así que los pedimos todos en
+        // paralelo y los guardamos junto a cada reserva antes de dibujar la tabla.
+        await Promise.all(
+            cachedReservations.map(async (res) => {
+                try {
+                    const filesRes = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/files/reservations/${res.id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (filesRes.ok) {
+                        const filesJson = await filesRes.json();
+                        res.files = filesJson.data || [];
+                    } else {
+                        const errorJson = await filesRes.json().catch(() => null);
+                        console.error(
+                            `No se pudieron cargar los archivos de la reserva #${res.id}: HTTP ${filesRes.status}`,
+                            errorJson
+                        );
+                        res.files = [];
+                    }
+                } catch (fileError) {
+                    console.error(`Error de red al pedir archivos de la reserva #${res.id}:`, fileError);
+                    res.files = [];
+                }
+            })
+        );
 
         tbody.innerHTML = '';
         cachedReservations.forEach(res => {
@@ -157,13 +199,29 @@ async function loadAdminReservations() {
                 completed: '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">Completada</span>'
             };
 
-            // El listado no trae archivos adjuntos (la consulta no los
-            // incluye); si en el futuro se agregan a la respuesta, esto
-            // los mostrará automáticamente.
-            const files = res.documents || res.files || [];
+            const files = res.files || [];
             const filesBadge = files.length > 0
-                ? `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">${files.length} archivo(s)</span>`
+                ? files
+                    .map(
+                        (f) => `
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-0 mb-1 d-flex align-items-center gap-1 text-truncate" style="max-width: 170px;" title="Descargar ${escapeHtml(f.original_name)}" onclick="downloadReservationFile(${f.id})">
+                        <i class="fa-solid fa-download"></i><span class="text-truncate">${escapeHtml(f.original_name)}</span>
+                    </button>`
+                    )
+                    .join('')
                 : `<span class="badge bg-secondary-subtle text-secondary px-2 py-1">Ninguno</span>`;
+
+            const actionButtons = [];
+            if (status === 'pending') {
+                actionButtons.push(`<button class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-none me-1" onclick="approveReservation(${resId})" title="Aprobar reserva">
+                    <i class="fa-solid fa-check"></i>
+                </button>`);
+            }
+            if (status === 'pending' || status === 'confirmed') {
+                actionButtons.push(`<button class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-none" onclick="cancelReservation(${resId})" title="Cancelar reserva">
+                    <i class="fa-solid fa-ban"></i>
+                </button>`);
+            }
 
             tr.innerHTML = `
                 <td class="ps-4">
@@ -176,11 +234,7 @@ async function loadAdminReservations() {
                 <td>${filesBadge}</td>
                 <td>${statusBadges[status] || status}</td>
                 <td class="text-center pe-4">
-                    ${status === 'cancelled'
-                        ? '<span class="text-secondary small">—</span>'
-                        : `<button class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-none" onclick="cancelReservation(${resId})" title="Cancelar reserva">
-                        <i class="fa-solid fa-ban"></i>
-                    </button>`}
+                    ${actionButtons.length > 0 ? actionButtons.join('') : '<span class="text-secondary small">—</span>'}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -189,6 +243,48 @@ async function loadAdminReservations() {
     } catch (error) {
         console.error("Error al cargar administración:", error);
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-5">Error de conexión con el servidor. Asegúrate de que el backend esté activo.</td></tr>`;
+    }
+}
+
+/**
+ * Aprueba una reserva pendiente (PATCH /:id/status con status: "confirmed").
+ */
+async function approveReservation(id) {
+    if (!id) {
+        alert('ID de reserva no válido.');
+        return;
+    }
+
+    const token = getAdminToken();
+    if (!token) {
+        checkAdminAuth();
+        return;
+    }
+
+    try {
+        const response = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/reservations/${id}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: 'confirmed' })
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+            checkAdminAuth();
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Error al aprobar (HTTP ${response.status})`);
+        }
+
+        loadAdminReservations();
+    } catch (error) {
+        console.error("Error al aprobar reserva:", error);
+        alert('No se pudo aprobar la reserva. Verifica la conexión con el servidor.');
     }
 }
 
@@ -268,6 +364,62 @@ function exportReservationsCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+/**
+ * Descarga un archivo adjunto (GET /api/files/:id/download, protegido).
+ * Como la ruta exige el header Authorization, no sirve un <a href="...">
+ * normal -el navegador no le agrega el token al navegar-; por eso se
+ * pide con fetch() y se arma la descarga manualmente con un blob.
+ */
+async function downloadReservationFile(fileId) {
+    const token = getAdminToken();
+    if (!token) {
+        checkAdminAuth();
+        return;
+    }
+
+    try {
+        const response = await fetch(`${RESERVATION_CONFIG.API_BASE_URL}/files/${fileId}/download`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+            checkAdminAuth();
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Error al descargar (HTTP ${response.status})`);
+        }
+
+        // El backend ya manda el nombre real del archivo en el header
+        // Content-Disposition (ver res.download() en file.controller.js);
+        // se recupera de ahí en vez de pasarlo por separado.
+        const disposition = response.headers.get('Content-Disposition') || '';
+        const match = /filename[^;=\n]*=(?:UTF-8'')?["']?([^"';\n]+)["']?/i.exec(disposition);
+        const filename = match ? decodeURIComponent(match[1]) : `archivo-${fileId}`;
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error al descargar archivo:', error);
+        alert('No se pudo descargar el archivo. Verifica la conexión con el servidor.');
+    }
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
 }
 
 function formatDateTime(isoString) {

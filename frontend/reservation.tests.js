@@ -251,7 +251,17 @@ async function run() {
 
   console.log('\nGET /reservations/availability');
   let slots = [];
-  const testDate = '2099-06-15';
+  // Antes esto era una fecha fija ('2099-06-15'). El problema: cada vez
+  // que --real crea una reserva de verdad en esa fecha, le consume un
+  // horario a la base de datos real -después de correr esta prueba
+  // varias veces, ese día terminó sin horarios libres en absoluto,
+  // haciendo fallar en cascada esta y las siguientes pruebas-. Ahora se
+  // usa una fecha aleatoria bien lejana en el futuro en cada corrida,
+  // para no ir agotando siempre el mismo día real.
+  const randomDaysAhead = 200 + Math.floor(Math.random() * 3000);
+  const testDate = new Date(Date.now() + randomDaysAhead * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
   await test('devuelve horarios disponibles para un servicio y fecha', async () => {
     const response = await context.apiGetAvailability({ serviceId: services[0].id, date: testDate });
     assert.ok(Array.isArray(response.data.slots));
